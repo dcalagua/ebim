@@ -312,6 +312,7 @@ export default function App() {
   const [proposalHTML, setProposalHTML] = useState("");
   const [showProposal, setShowProposal] = useState(false);
   const [scenariosOpen, setScenariosOpen] = useState(false);
+  const [intelTab, setIntelTab] = useState("perfil");
   const proposalFrame = useRef(null);
   const fileRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
@@ -697,6 +698,12 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .stepnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
         .stepnav a{font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;transition:.12s;}
         .stepnav a:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
+        .tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:18px;}
+        .tab{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;padding:0 0 12px;cursor:pointer;position:relative;transition:.12s;}
+        .tab:hover{color:var(--ink);}
+        .tab.active{color:var(--accent);}
+        .tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent);border-radius:2px 2px 0 0;}
+        .tabpanel textarea{min-height:220px;font-size:14.5px;line-height:1.6;}
         .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;}
         .brand{display:flex;align-items:center;gap:10px;}
         .reqchip{font-family:'JetBrains Mono',monospace;background:var(--ink);color:#fff;padding:6px 12px;border-radius:7px;font-weight:600;letter-spacing:.5px;}
@@ -922,29 +929,47 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                 </span>
               </div>
             )}
-            <div style={{ marginBottom: 12 }}>
-              <label>Perfil del cliente · a qué se dedica y qué ofrecerle (investigado por IA)</label>
-              <textarea value={est.insight.perfilCliente} onChange={(e) => up({ insight: { ...est.insight, perfilCliente: e.target.value } })}
-                placeholder="La IA investiga al cliente: industria, tamaño, contexto y oportunidades de servicio…" />
+            <div className="tabs">
+              {[
+                ["perfil", "Perfil del cliente"],
+                ["competencia", "Análisis de competencia"],
+                ["valor", "Valor agregado"],
+                ["ia", "Oportunidad de IA"],
+              ].map(([id, label]) => (
+                <button key={id} type="button" className={"tab" + (intelTab === id ? " active" : "")} onClick={() => setIntelTab(id)}>{label}</button>
+              ))}
             </div>
-            <div className="row3">
-              <div>
-                <label>Análisis de competencia</label>
-                <textarea value={est.insight.competencia} onChange={(e) => up({ insight: { ...est.insight, competencia: e.target.value } })}
-                  placeholder="Quién compite en este país, rango de precios típico y cómo diferenciarse…" />
-              </div>
-              <div>
-                <label>Valor agregado a proponer (una idea por línea)</label>
-                <textarea value={(est.insight.valor || []).join("\n")} onChange={(e) => up({ insight: { ...est.insight, valor: e.target.value.split("\n").filter((x) => x.trim()) } })}
-                  placeholder="Entregables o servicios extra que justifican el precio…" />
-              </div>
-              <div>
-                <label>Oportunidad de IA / automatización</label>
-                <textarea value={est.insight.ia} onChange={(e) => up({ insight: { ...est.insight, ia: e.target.value } })}
-                  placeholder="Copilotos, chatbots, automatización, BI, agentes… o 'No aplica'." />
-              </div>
+            <div className="tabpanel">
+              {intelTab === "perfil" && (
+                <div>
+                  <label>A qué se dedica el cliente y qué ofrecerle (investigado por IA)</label>
+                  <textarea value={est.insight.perfilCliente} onChange={(e) => up({ insight: { ...est.insight, perfilCliente: e.target.value } })}
+                    placeholder="La IA investiga al cliente: industria, tamaño, contexto y oportunidades de servicio…" />
+                </div>
+              )}
+              {intelTab === "competencia" && (
+                <div>
+                  <label>Quién compite y cómo diferenciarse</label>
+                  <textarea value={est.insight.competencia} onChange={(e) => up({ insight: { ...est.insight, competencia: e.target.value } })}
+                    placeholder="Quién compite en este país, rango de precios típico y cómo diferenciarse…" />
+                </div>
+              )}
+              {intelTab === "valor" && (
+                <div>
+                  <label>Valor agregado a proponer (una idea por línea)</label>
+                  <textarea value={(est.insight.valor || []).join("\n")} onChange={(e) => up({ insight: { ...est.insight, valor: e.target.value.split("\n").filter((x) => x.trim()) } })}
+                    placeholder="Entregables o servicios extra que justifican el precio…" />
+                </div>
+              )}
+              {intelTab === "ia" && (
+                <div>
+                  <label>Oportunidad de IA / automatización</label>
+                  <textarea value={est.insight.ia} onChange={(e) => up({ insight: { ...est.insight, ia: e.target.value } })}
+                    placeholder="Copilotos, chatbots, automatización, BI, agentes… o 'No aplica'." />
+                </div>
+              )}
             </div>
-            <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado y propone IA. La estrategia de cierre recomendada está en el panel de precio, a la derecha.</div>
+            <div className="hint" style={{ marginTop: 10 }}>La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado y propone IA. La estrategia de cierre recomendada está en el panel de precio, a la derecha.</div>
           </div>
 
           <div className="section-label" id="step-ajuste">Paso 3 · Ajuste financiero</div>
