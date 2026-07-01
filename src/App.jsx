@@ -4,7 +4,7 @@ import mammoth from "mammoth";
 import {
   Globe, Sparkles, Plus, Trash2, Save, Download, History, FileSpreadsheet,
   AlertTriangle, CheckCircle2, RotateCcw, Building2, Loader2, X, Paperclip,
-  FileText, FileType, Image as ImageIcon, UploadCloud, LogOut
+  FileText, FileType, Image as ImageIcon, UploadCloud, LogOut, ChevronDown
 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient";
 import { store } from "./lib/store";
@@ -268,6 +268,7 @@ export default function App() {
   const [proposalLoading, setProposalLoading] = useState(false);
   const [proposalHTML, setProposalHTML] = useState("");
   const [showProposal, setShowProposal] = useState(false);
+  const [scenariosOpen, setScenariosOpen] = useState(false);
   const proposalFrame = useRef(null);
   const fileRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
@@ -635,8 +636,11 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         @media(max-width:1080px){.layout{grid-template-columns:1fr;}}
         .summary-sticky{position:sticky;top:20px;}
         @media(max-width:1080px){.summary-sticky{position:static;}}
-        .section-label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:10px 0 -8px 2px;}
+        .section-label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:10px 0 -8px 2px;scroll-margin-top:64px;}
         .section-label:first-child{margin-top:0;}
+        .stepnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+        .stepnav a{font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;transition:.12s;}
+        .stepnav a:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
         .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;}
         .brand{display:flex;align-items:center;gap:10px;}
         .reqchip{font-family:'JetBrains Mono',monospace;background:var(--ink);color:#fff;padding:6px 12px;border-radius:7px;font-weight:600;letter-spacing:.5px;}
@@ -717,9 +721,21 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           </div>
         </div>
 
+        <nav className="stepnav">
+          {[
+            ["step-captura", "1 · Captura"],
+            ["step-revision", "2 · Revisión IA"],
+            ["step-ajuste", "3 · Ajuste financiero"],
+            ["step-planificacion", "4 · Planificación"],
+            ["step-interno", "Uso interno"],
+          ].map(([id, label]) => (
+            <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>{label}</a>
+          ))}
+        </nav>
+
         <div className="layout">
         <div className="grid">
-          <div className="section-label">Paso 1 · Captura</div>
+          <div className="section-label" id="step-captura">Paso 1 · Captura</div>
           {/* Identificación */}
           <div className="card">
             <h3><Building2 size={14} /> Identificación del requerimiento</h3>
@@ -818,7 +834,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             {aiError && <div className="note" style={{ marginTop: 10, background: "#FBE6E6", color: "var(--bad)" }}><AlertTriangle size={15} /> {aiError}</div>}
           </div>
 
-          <div className="section-label">Paso 2 · Revisión IA</div>
+          <div className="section-label" id="step-revision">Paso 2 · Revisión IA</div>
           {/* Inteligencia comercial */}
           <div className="card">
             <h3><Sparkles size={14} /> Inteligencia comercial · {country.name}</h3>
@@ -853,7 +869,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado, propone IA y recomienda cómo cerrar. Puedes editarlo libremente.</div>
           </div>
 
-          <div className="section-label">Paso 3 · Ajuste financiero</div>
+          <div className="section-label" id="step-ajuste">Paso 3 · Ajuste financiero</div>
           {/* Supuestos / tarifas */}
           <div className="card">
             <h3>Supuestos · costo país vs. precio de venta (USD/hora)</h3>
@@ -952,7 +968,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             </div>
           </div>
 
-          <div className="section-label">Paso 4 · Planificación</div>
+          <div className="section-label" id="step-planificacion">Paso 4 · Planificación</div>
           {/* Cronograma de trabajo (Gantt) */}
           <div className="card">
             <h3>Cronograma de trabajo · Gantt por entregable</h3>
@@ -1022,27 +1038,34 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => up({ schedule: [...est.schedule, { id: crypto.randomUUID(), hito: "", pct: 0 }] })}><Plus size={15} /> Añadir hito</button>
           </div>
 
-          <div className="section-label">Uso interno</div>
+          <div className="section-label" id="step-interno">Uso interno</div>
           {/* Escenarios de descuento */}
           <div className="card">
-            <h3>Escenarios de descuento · alineado a {country.name}</h3>
-            <table>
-              <thead><tr><th className="l">Escenario</th><th>Desc.</th><th>Precio USD</th><th>Precio {country.cur}</th><th>Utilidad</th><th>Rentabilidad</th><th className="l">Recomendación</th></tr></thead>
-              <tbody>
-                {scen.map((s) => (
-                  <tr key={s.d}>
-                    <td className="l">{s.d === 0 ? "Sin descuento" : `Descuento ${s.d * 100}%`}</td>
-                    <td className="num">{(s.d * 100).toFixed(0)}%</td>
-                    <td className="num">{fmtUSD(s.price)}</td>
-                    <td className="num">{fmtLocal(s.price * est.fx, country.cur)}</td>
-                    <td className="num">{fmtUSD(s.util)}</td>
-                    <td className="num" style={{ color: s.light === "ok" ? "var(--ok)" : s.light === "warn" ? "var(--warn)" : "var(--bad)", fontWeight: 600 }}>{pct(s.rent)}</td>
-                    <td className="l"><span className={"pill " + s.light}>{s.light === "ok" ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}{s.txt}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="note" style={{ marginTop: 12 }}><AlertTriangle size={15} style={{ flexShrink: 0 }} /><span>Hoja de uso interno. El cliente recibe únicamente el precio llave en mano, sin desglose de descuentos ni márgenes. Mínimo aceptable para {country.name}: <b>{pct(country.minRent)}</b> de rentabilidad neta.</span></div>
+            <h3 style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => setScenariosOpen((v) => !v)}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Escenarios de descuento · alineado a {country.name}</span>
+              <ChevronDown size={15} style={{ transform: scenariosOpen ? "rotate(180deg)" : "none", transition: ".15s" }} />
+            </h3>
+            {scenariosOpen && (
+              <>
+                <table>
+                  <thead><tr><th className="l">Escenario</th><th>Desc.</th><th>Precio USD</th><th>Precio {country.cur}</th><th>Utilidad</th><th>Rentabilidad</th><th className="l">Recomendación</th></tr></thead>
+                  <tbody>
+                    {scen.map((s) => (
+                      <tr key={s.d}>
+                        <td className="l">{s.d === 0 ? "Sin descuento" : `Descuento ${s.d * 100}%`}</td>
+                        <td className="num">{(s.d * 100).toFixed(0)}%</td>
+                        <td className="num">{fmtUSD(s.price)}</td>
+                        <td className="num">{fmtLocal(s.price * est.fx, country.cur)}</td>
+                        <td className="num">{fmtUSD(s.util)}</td>
+                        <td className="num" style={{ color: s.light === "ok" ? "var(--ok)" : s.light === "warn" ? "var(--warn)" : "var(--bad)", fontWeight: 600 }}>{pct(s.rent)}</td>
+                        <td className="l"><span className={"pill " + s.light}>{s.light === "ok" ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}{s.txt}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="note" style={{ marginTop: 12 }}><AlertTriangle size={15} style={{ flexShrink: 0 }} /><span>Hoja de uso interno. El cliente recibe únicamente el precio llave en mano, sin desglose de descuentos ni márgenes. Mínimo aceptable para {country.name}: <b>{pct(country.minRent)}</b> de rentabilidad neta.</span></div>
+              </>
+            )}
           </div>
         </div>
 
