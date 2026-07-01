@@ -134,6 +134,30 @@ function scenarioRow(calc, d, minRent) {
   return { d, price, util, rent, light, txt };
 }
 
+// Input numérico para porcentajes: mantiene el texto que el usuario está tecleando en estado local
+// y solo lo reformatea (a "35.0") al perder foco — si se reformatea en cada onChange (como hacía antes
+// con value={(x*100).toFixed(1)} directo), el valor "salta" mientras se escribe y parece que no deja editar.
+function PctInput({ value, onChange, decimals = 1, step = 0.5 }) {
+  const [text, setText] = useState((value * 100).toFixed(decimals));
+  const [focused, setFocused] = useState(false);
+  useEffect(() => { if (!focused) setText((value * 100).toFixed(decimals)); }, [value, focused, decimals]);
+  return (
+    <input
+      className="num"
+      type="number"
+      step={step}
+      value={text}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => {
+        setText(e.target.value);
+        const n = parseFloat(e.target.value);
+        if (Number.isFinite(n)) onChange(n / 100);
+      }}
+      onBlur={() => { setFocused(false); setText((value * 100).toFixed(decimals)); }}
+    />
+  );
+}
+
 /* ---------- Propuesta comercial (cara al cliente) ---------- */
 function defaultProse(est) {
   return {
@@ -626,6 +650,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .card h3{font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
         label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
         input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
+        textarea{field-sizing:content;min-height:80px;max-height:480px;overflow-y:auto;resize:vertical;}
         input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
         .num{font-family:'JetBrains Mono',monospace;text-align:right;}
         table{width:100%;border-collapse:collapse;}
@@ -732,7 +757,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           <div className="card aiwrap">
             <h3><Sparkles size={14} /> Borrador inteligente · tu prompt</h3>
             <label>Tu prompt / instrucciones (alcance, modificaciones, consideraciones…)</label>
-            <textarea rows={4} value={est.context} onChange={(e) => up({ context: e.target.value })}
+            <textarea value={est.context} onChange={(e) => up({ context: e.target.value })}
               placeholder="Escribe aquí como si hablaras conmigo: 'estima este BBP', 'agrega capacitación', 'sube las horas del PM', 'aplica 8% de descuento', 'enfócalo en migración cloud'… Adjunta documentos abajo y pulsa Analizar." />
             <div className="hint" style={{ marginTop: 6 }}>Cada vez que pulses <b>Analizar documentos y generar propuesta</b>, aplico tus instrucciones sobre la propuesta actual (si ya existe) en lugar de empezar de cero.</div>
 
@@ -799,29 +824,29 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <h3><Sparkles size={14} /> Inteligencia comercial · {country.name}</h3>
             <div style={{ marginBottom: 12 }}>
               <label>Perfil del cliente · a qué se dedica y qué ofrecerle (investigado por IA)</label>
-              <textarea rows={2} value={est.insight.perfilCliente} onChange={(e) => up({ insight: { ...est.insight, perfilCliente: e.target.value } })}
+              <textarea value={est.insight.perfilCliente} onChange={(e) => up({ insight: { ...est.insight, perfilCliente: e.target.value } })}
                 placeholder="La IA investiga al cliente: industria, tamaño, contexto y oportunidades de servicio…" />
             </div>
             <div className="row3">
               <div>
                 <label>Análisis de competencia</label>
-                <textarea rows={5} value={est.insight.competencia} onChange={(e) => up({ insight: { ...est.insight, competencia: e.target.value } })}
+                <textarea value={est.insight.competencia} onChange={(e) => up({ insight: { ...est.insight, competencia: e.target.value } })}
                   placeholder="Quién compite en este país, rango de precios típico y cómo diferenciarse…" />
               </div>
               <div>
                 <label>Valor agregado a proponer (una idea por línea)</label>
-                <textarea rows={5} value={(est.insight.valor || []).join("\n")} onChange={(e) => up({ insight: { ...est.insight, valor: e.target.value.split("\n").filter((x) => x.trim()) } })}
+                <textarea value={(est.insight.valor || []).join("\n")} onChange={(e) => up({ insight: { ...est.insight, valor: e.target.value.split("\n").filter((x) => x.trim()) } })}
                   placeholder="Entregables o servicios extra que justifican el precio…" />
               </div>
               <div>
                 <label>Oportunidad de IA / automatización</label>
-                <textarea rows={5} value={est.insight.ia} onChange={(e) => up({ insight: { ...est.insight, ia: e.target.value } })}
+                <textarea value={est.insight.ia} onChange={(e) => up({ insight: { ...est.insight, ia: e.target.value } })}
                   placeholder="Copilotos, chatbots, automatización, BI, agentes… o 'No aplica'." />
               </div>
             </div>
             <div style={{ marginTop: 12 }}>
               <label>★ Estrategia de cierre (recomendación del estratega — uso interno)</label>
-              <textarea rows={3} value={est.insight.estrategiaCierre} onChange={(e) => up({ insight: { ...est.insight, estrategiaCierre: e.target.value } })}
+              <textarea value={est.insight.estrategiaCierre} onChange={(e) => up({ insight: { ...est.insight, estrategiaCierre: e.target.value } })}
                 placeholder="Postura de precio para ganar siendo rentable, qué enfatizar ante este cliente y riesgos a cuidar…"
                 style={{ borderColor: "var(--gold)", background: "#FFFDF6" }} />
             </div>
@@ -910,18 +935,15 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           {/* Parámetros comerciales */}
           <div className="card">
             <h3>Parámetros comerciales (editables)</h3>
-            <div style={{ maxWidth: 260, marginBottom: 14 }}>
-              <label>Margen objetivo / piso (% s/ PV)</label>
-              <input className="num" type="number" step="0.5" value={(est.margin * 100).toFixed(1)} onChange={(e) => up({ margin: +e.target.value / 100 })} />
-            </div>
-            <div className="row3">
-              <div><label>Gastos administrativos</label><input className="num" type="number" step="0.1" value={(est.adm * 100).toFixed(1)} onChange={(e) => up({ adm: +e.target.value / 100 })} /></div>
-              <div><label>Gestión comercial — Carmen</label><input className="num" type="number" step="0.1" value={(est.com * 100).toFixed(1)} onChange={(e) => up({ com: +e.target.value / 100 })} /></div>
-              <div><label>Gestión MKT</label><input className="num" type="number" step="0.1" value={(est.mkt * 100).toFixed(1)} onChange={(e) => up({ mkt: +e.target.value / 100 })} /></div>
+            <div className="row4">
+              <div><label>Margen objetivo / piso (% s/ PV)</label><PctInput value={est.margin} onChange={(v) => up({ margin: v })} step={0.5} /></div>
+              <div><label>Gastos administrativos</label><PctInput value={est.adm} onChange={(v) => up({ adm: v })} step={0.1} /></div>
+              <div><label>Gestión comercial — Carmen</label><PctInput value={est.com} onChange={(v) => up({ com: v })} step={0.1} /></div>
+              <div><label>Gestión MKT</label><PctInput value={est.mkt} onChange={(v) => up({ mkt: v })} step={0.1} /></div>
             </div>
             <div style={{ marginTop: 12, maxWidth: 260 }}>
               <label>Descuento comercial</label>
-              <input className="num" type="number" step="1" value={(est.discount * 100).toFixed(0)} onChange={(e) => up({ discount: +e.target.value / 100 })} />
+              <PctInput value={est.discount} onChange={(v) => up({ discount: v })} decimals={0} step={1} />
               {est.discount > country.maxDesc && <div className="hint" style={{ color: "var(--warn)" }}>Por encima del descuento competitivo sugerido para {country.name} ({pct(country.maxDesc)}).</div>}
             </div>
             <div className="note" style={{ marginTop: 14, background: calc.grossMargin < est.margin ? "#FBF1DD" : "var(--accent-soft)", color: calc.grossMargin < est.margin ? "var(--warn)" : "var(--accent)" }}>
@@ -983,7 +1005,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                   <tr key={s.id}>
                     <td className="l mono">{i + 1}</td>
                     <td className="l"><input value={s.hito} onChange={(e) => { const sc = [...est.schedule]; sc[i] = { ...s, hito: e.target.value }; up({ schedule: sc }); }} /></td>
-                    <td><input className="num" type="number" value={(s.pct * 100).toFixed(0)} onChange={(e) => { const sc = [...est.schedule]; sc[i] = { ...s, pct: +e.target.value / 100 }; up({ schedule: sc }); }} /></td>
+                    <td><PctInput value={s.pct} decimals={0} step={1} onChange={(v) => { const sc = [...est.schedule]; sc[i] = { ...s, pct: v }; up({ schedule: sc }); }} /></td>
                     <td className="num">{fmtUSD(calc.PVfinal * s.pct)}</td>
                     <td className="num">{fmtLocal(calc.PVfinal * s.pct * est.fx, country.cur)}</td>
                     <td><button className="iconbtn" aria-label={`Quitar hito ${s.hito || ""}`} title="Quitar hito" onClick={() => up({ schedule: est.schedule.filter((x) => x.id !== s.id) })}><Trash2 size={15} /></button></td>
