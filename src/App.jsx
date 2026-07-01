@@ -130,23 +130,27 @@ function compute(est) {
     return { ...d, hrs: hS + hM + hA, cost, sale };
   });
   const CO = rows.reduce((s, x) => s + x.cost, 0);          // costo operativo (costo país)
-  const PVO = rows.reduce((s, x) => s + x.sale, 0);          // precio de venta competitivo (país)
+  const PVO = rows.reduce((s, x) => s + x.sale, 0);          // precio de venta competitivo (país), solo horas×tarifa
   const totalHrs = rows.reduce((s, x) => s + x.hrs, 0);
-  const grossMargin = PVO > 0 ? (PVO - CO) / PVO : 0;        // margen bruto resultante
-  const floorPrice = est.margin < 1 ? CO / (1 - est.margin) : CO; // piso por margen objetivo
+  const grossMargin = PVO > 0 ? (PVO - CO) / PVO : 0;        // margen bruto resultante (solo labor, sin gastos de estructura)
   // Gastos sobre CO (costo país), no sobre PVO: si no, un descuento alto los "encoge" y
   // la rentabilidad aparente queda inflada justo cuando más importa que sea realista (decisión de Lia).
   const gAdm = est.adm * CO, gCom = est.com * CO, gMkt = est.mkt * CO;
   const gastos = gAdm + gCom + gMkt;
-  const PVfinal = PVO * (1 - est.discount);
+  const floorPrice = est.margin < 1 ? (CO + gastos) / (1 - est.margin) : (CO + gastos); // piso por margen objetivo, ya con gastos incluidos
+  // Full cost recovery (decisión de Dennis 2026-07-01): Adm/Comercial/MKT se suman al precio antes
+  // del descuento, en vez de solo restarse de la utilidad — así el cliente cubre esos gastos de
+  // estructura y no quedan absorbidos silenciosamente del margen de EBIM.
+  const PVOconGastos = PVO + gastos;
+  const PVfinal = PVOconGastos * (1 - est.discount);
   const utilidad = PVfinal - CO - gastos;
   const rent = PVfinal > 0 ? utilidad / PVfinal : 0;
   const weeksTotal = rows.reduce((m, x) => Math.max(m, (x.start || 0) + (x.dur || 1)), 1);
-  return { rows, CO, PVO, totalHrs, weeksTotal, grossMargin, floorPrice, gAdm, gCom, gMkt, gastos, PVfinal, utilidad, rent };
+  return { rows, CO, PVO, PVOconGastos, totalHrs, weeksTotal, grossMargin, floorPrice, gAdm, gCom, gMkt, gastos, PVfinal, utilidad, rent };
 }
 
 function scenarioRow(calc, d, minRent) {
-  const price = calc.PVO * (1 - d);
+  const price = calc.PVOconGastos * (1 - d);
   const util = price - calc.CO - calc.gastos;
   const rent = price > 0 ? util / price : 0;
   let light = "ok", txt = "Aceptable — sobre el mínimo";
@@ -211,7 +215,7 @@ function buildProposalHTML(est, calc, c, prose, logoDataUrl) {
   // Rango de negociación en vez de un número rígido (decisión de Lia): techo = precio ya configurado,
   // piso = lo más bajo que EBIM puede llegar sin perder margen, dado el descuento máximo competitivo del país.
   const precioTecho = calc.PVfinal;
-  const precioPiso = Math.min(precioTecho, calc.PVO * (1 - c.maxDesc));
+  const precioPiso = Math.min(precioTecho, calc.PVOconGastos * (1 - c.maxDesc));
   const hayRango = precioTecho - precioPiso > 1;
   const weeks = calc.weeksTotal || Math.max(1, Math.ceil(calc.totalHrs / (Math.max(1, est.team.filter((t) => t.perfil).length) * 32)));
   const gantt = est.deliverables.filter((d) => d.name).map((d) => {
@@ -1060,7 +1064,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           {/* Parámetros comerciales */}
           <div className="card">
             <h3>Parámetros comerciales (editables)</h3>
-            <div className="hint" style={{ marginBottom: 12 }}>Estos gastos NO se suman al precio del cliente — el precio ya es competitivo de mercado (horas × tarifa). Adm/Comercial/MKT se descuentan de tu margen interno; bajan tu utilidad/rentabilidad, no lo que le cobras al cliente.</div>
+            <div className="hint" style={{ marginBottom: 12 }}>Estos gastos SÍ se suman al precio final del cliente (full cost recovery) — el precio antes de descuento es horas×tarifa + Adm/Comercial/MKT, así tu margen queda protegido en vez de absorber estos gastos de tu utilidad.</div>
             <div className="row4">
               <div><label>Margen objetivo / piso (% s/ PV)</label><PctInput value={est.margin} onChange={(v) => up({ margin: v })} step={0.5} /></div>
               <div><label>Gastos administrativos</label><PctInput value={est.adm} onChange={(v) => up({ adm: v })} step={0.1} /></div>
@@ -1193,10 +1197,11 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             </div>
             <div style={{ marginTop: 18, borderTop: "1px solid var(--line)", paddingTop: 6 }}>
               <div className="kv"><span>Costo operativo (país)</span><b>{fmtUSD(calc.CO)}</b></div>
-              <div className="kv"><span>Precio venta operaciones</span><b>{fmtUSD(calc.PVO)}</b></div>
-              <div className="kv"><span>Margen bruto</span><b>{pct(calc.grossMargin)}</b></div>
-              <div className="kv"><span>Gastos adm. (Carmen, MKT)</span><b>{fmtUSD(calc.gastos)}</b></div>
-              <div className="kv"><span>Descuento aplicado</span><b>−{fmtUSD(calc.PVO * est.discount)}</b></div>
+              <div className="kv"><span>Precio venta (horas)</span><b>{fmtUSD(calc.PVO)}</b></div>
+              <div className="kv"><span>Margen bruto (horas)</span><b>{pct(calc.grossMargin)}</b></div>
+              <div className="kv"><span>+ Gastos adm. (Carmen, MKT)</span><b>{fmtUSD(calc.gastos)}</b></div>
+              <div className="kv"><span>= Precio con gastos incluidos</span><b>{fmtUSD(calc.PVOconGastos)}</b></div>
+              <div className="kv"><span>− Descuento aplicado</span><b>−{fmtUSD(calc.PVOconGastos * est.discount)}</b></div>
               <div className="kv"><span>Utilidad neta</span><b style={{ color: rentColor }}>{fmtUSD(calc.utilidad)}</b></div>
             </div>
           </div>
