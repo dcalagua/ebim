@@ -688,16 +688,11 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .ebim-root *{box-sizing:border-box;}
         .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
         .disp{font-family:'Space Grotesk',sans-serif;}
-        .wrap{max-width:1440px;margin:0 auto;padding:22px 18px 80px;}
-        .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
-        @media(max-width:1080px){.layout{grid-template-columns:1fr;}}
+        .wrap{max-width:1600px;margin:0 auto;padding:22px 18px 80px;}
         .summary-sticky{position:sticky;top:20px;}
         @media(max-width:1080px){.summary-sticky{position:static;}}
         .section-label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:10px 0 -8px 2px;scroll-margin-top:64px;}
         .section-label:first-child{margin-top:0;}
-        .stepnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
-        .stepnav a{font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;transition:.12s;}
-        .stepnav a:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
         .tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:18px;}
         .tab{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;padding:0 0 12px;cursor:pointer;position:relative;transition:.12s;}
         .tab:hover{color:var(--ink);}
@@ -789,21 +784,30 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           </div>
         </div>
 
-        <nav className="stepnav">
-          {[
-            ["step-captura", "1 · Captura"],
-            ["step-revision", "2 · Revisión IA"],
-            ["step-ajuste", "3 · Ajuste financiero"],
-            ["step-planificacion", "4 · Planificación"],
-            ["step-interno", "Uso interno"],
-          ].map(([id, label]) => (
-            <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>{label}</a>
-          ))}
-        </nav>
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <nav className="flex flex-row lg:flex-col gap-1.5 lg:gap-0.5 w-full lg:w-52 shrink-0 lg:sticky lg:top-5 lg:self-start overflow-x-auto lg:overflow-visible pb-1">
+            <div className="hidden lg:block text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] px-3 mb-2">Navegación</div>
+            {[
+              ["step-captura", "1 · Captura"],
+              ["step-revision", "2 · Revisión IA"],
+              ["step-ajuste", "3 · Ajuste financiero"],
+              ["step-planificacion", "4 · Planificación"],
+              ["step-interno", "Uso interno"],
+            ].map(([id, label]) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                className="rounded-lg px-3 py-2 text-[13px] font-semibold text-[var(--muted)] no-underline transition-colors hover:text-[var(--accent)] hover:bg-[var(--accent-soft)] whitespace-nowrap shrink-0"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
 
-        <div className="layout">
-        <div className="grid">
-          <div className="section-label" id="step-captura">Paso 1 · Captura</div>
+          <div className="flex-1 min-w-0">
+            <div className="grid">
+              <div className="section-label" id="step-captura">Paso 1 · Captura</div>
           {/* IA — ahora la protagonista de Paso 1 */}
           <div className="card aiwrap">
             <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
@@ -1172,9 +1176,10 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               </>
             )}
           </div>
-        </div>
+            </div>
+          </div>
 
-        <aside className="summary-sticky">
+        <aside className="summary-sticky w-full lg:w-[340px] shrink-0">
           {/* Hero precio */}
           <div className="card">
             <div className="pricelabel">★ Precio de venta final (sin IGV) · USD</div>
