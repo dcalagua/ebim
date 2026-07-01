@@ -95,7 +95,7 @@ const defaultEstimation = (countryKey = "PE", code) => {
     fx: c.fx,
     rates: cloneRates(c.rates),
     context: "",
-    insight: { perfilCliente: "", competencia: "", valor: [], ia: "", estrategiaCierre: "", hechosClave: [] },
+    insight: { resumenRequerimiento: "", perfilCliente: "", competencia: "", valor: [], ia: "", estrategiaCierre: "", hechosClave: [] },
     team: [
       { id: crypto.randomUUID(), perfil: "Arquitecto TI / Consultor Senior", tier: "senior", rol: "Lidera diagnóstico, arquitectura y roadmap" },
       { id: crypto.randomUUID(), perfil: "Consultor Semi-Senior TI", tier: "semi", rol: "Levantamiento técnico: apps, plataformas, APIs" },
@@ -443,7 +443,7 @@ En CADA estimación SIEMPRE debes:
 El usuario de EBIM puede incluir INSTRUCCIONES o consideraciones (p. ej. "agrega un consultor de seguridad", "hazlo más competitivo", "incluye fase 2"): aplícalas. Si recibes una PROPUESTA ACTUAL en JSON, modifica ESA base y conserva lo no afectado, en lugar de empezar de cero.
 
 Tarea: a partir del CONTEXTO y de los DOCUMENTOS ADJUNTOS (BBP/Business Blueprint, transcripciones de Teams, actas, propuestas, diagramas): (a) DETECTA automáticamente el tipo de servicio/proyecto, el CLIENTE y el PAÍS del cliente; (b) propón el equipo y el desglose de entregables con horas por perfil para ese país. Si hay un BBP, deriva los entregables de los procesos y gaps; si hay transcripciones, extrae alcance, supuestos y compromisos. Usa web_search para validar cliente, competencia o tarifas locales. Devuelve EXCLUSIVAMENTE un objeto JSON válido (sin texto ni markdown) con esta forma exacta y conciso:
-{"cliente":"string (nombre del cliente detectado, o '')","pais":"string (PE o EC; o el nombre del país)","tipoProyecto":"string","hechosClave":["string (cifras/datos LITERALES tomados de los documentos que usaste para dimensionar el alcance — ej. 'Catálogo de 15,000 SKUs iniciales', '5 usuarios en panel admin' — copia el número exacto del documento, nunca lo redondees ni lo inventes; 3-6 items)"],"perfilCliente":"string (investiga al cliente con web_search: a qué se dedica, industria, tamaño y qué ofrecerle; 2-3 frases)","equipo":[{"perfil":"string","tier":"senior|semi|analista","rol":"string"}],"entregables":[{"nombre":"string","hS":number,"hM":number,"hA":number,"semanas":number}],"cronograma":[{"hito":"string","pct":number}],"analisisCompetencia":"string (2-3 frases)","valorAgregado":["string","string"],"oportunidadIA":"string (1-2 frases; o 'No aplica')","estrategiaCierre":"string (cómo defender el precio resultante en términos relativos, sin inventar un monto en USD; qué enfatizar y riesgos; 2-3 frases)"}
+{"cliente":"string (nombre del cliente detectado, o '')","pais":"string (PE o EC; o el nombre del país)","tipoProyecto":"string","resumenRequerimiento":"string (RESUMEN EN LENGUAJE SIMPLE de qué necesita el cliente y por qué — no quién es el cliente ni de qué se dedica, sino CUÁL ES EL PROBLEMA/NECESIDAD que trae y qué se le va a entregar en términos llanos, como si se lo explicaras a alguien que no leyó los documentos; 3-4 frases, sin jerga de venta)","hechosClave":["string (cifras/datos LITERALES tomados de los documentos que usaste para dimensionar el alcance — ej. 'Catálogo de 15,000 SKUs iniciales', '5 usuarios en panel admin' — copia el número exacto del documento, nunca lo redondees ni lo inventes; 3-6 items)"],"perfilCliente":"string (investiga al cliente con web_search: a qué se dedica, industria, tamaño y qué ofrecerle; 2-3 frases)","equipo":[{"perfil":"string","tier":"senior|semi|analista","rol":"string"}],"entregables":[{"nombre":"string","hS":number,"hM":number,"hA":number,"semanas":number}],"cronograma":[{"hito":"string","pct":number}],"analisisCompetencia":"string (2-3 frases)","valorAgregado":["string","string"],"oportunidadIA":"string (1-2 frases; o 'No aplica')","estrategiaCierre":"string (cómo defender el precio resultante en términos relativos, sin inventar un monto en USD; qué enfatizar y riesgos; 2-3 frases)"}
 Reglas: hS=horas Senior/Arquitecto/PM, hM=horas Semi-Senior, hA=horas Analista, semanas=duración del entregable en semanas (entero ≥1). El país solo puede ser Perú (PE) o Ecuador (EC). Máximo 6 entregables, numéralos. El cronograma suma pct=1.0 (típico 0.35/0.35/0.30). Sé breve para no exceder el límite de tokens. Si el mensaje incluye una PROPUESTA ACTUAL, trata el texto del usuario como INSTRUCCIONES DE MODIFICACIÓN: aplícalas sobre esa propuesta y conserva todo lo que el usuario no pida cambiar (devuelve igualmente el JSON completo).
 CONSISTENCIA (importante): para el mismo alcance/contexto, dos corridas NO deberían producir precios finales muy distintos entre sí — eso rompe la confianza del comercial en la herramienta. Antes de fijar las horas, estima primero la complejidad y el tamaño real del alcance (número de procesos/módulos/integraciones descritos, cantidad de usuarios, plazos mencionados) y deriva las horas de ahí de forma metódica, no de una sensación distinta cada vez. Usa como referencia órdenes de magnitud típicos de EBIM para consultoría TI LatAm (un diagnóstico acotado ronda 80-150h totales; una implementación mediana con desarrollo, 400-900h; un programa multi-módulo, 1000h+) y ajusta según lo que el contexto realmente pida, no por defecto.
 ALCANCE (cuando los documentos son transcripciones/actas, no un BBP cerrado): incluye en las horas SOLO lo que quedó como compromiso o requerimiento explícito en la conversación; si algo se menciona como idea, posibilidad futura o "fase 2/nice to have", NO lo sumes al alcance de esta cotización — mencionarlo como oportunidad de venta futura en valorAgregado si aplica, pero no lo cotices. Esto es clave para que el alcance (y por lo tanto el precio) no varíe según cuánto de la charla decidas incluir cada vez.
@@ -512,6 +512,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         })(),
         schedule: (parsed.cronograma && parsed.cronograma.length ? parsed.cronograma : e.schedule.map((s) => ({ hito: s.hito, pct: s.pct }))).map((s) => ({ id: crypto.randomUUID(), hito: s.hito, pct: +s.pct || 0 })),
         insight: {
+          resumenRequerimiento: parsed.resumenRequerimiento || "",
           perfilCliente: parsed.perfilCliente || "",
           competencia: parsed.analisisCompetencia || "",
           valor: Array.isArray(parsed.valorAgregado) ? parsed.valorAgregado : (parsed.valorAgregado ? [parsed.valorAgregado] : []),
@@ -895,6 +896,18 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           </div>
 
           <div className="section-label" id="step-revision">Paso 2 · Revisión IA</div>
+          {/* Resumen del requerimiento */}
+          <div className="card" style={{ borderLeft: "4px solid var(--accent)" }}>
+            <h3><FileText size={14} /> Resumen del requerimiento — qué necesita el cliente</h3>
+            <textarea
+              value={est.insight.resumenRequerimiento}
+              onChange={(e) => up({ insight: { ...est.insight, resumenRequerimiento: e.target.value } })}
+              placeholder="Qué problema/necesidad trae el cliente y qué se le va a entregar, en lenguaje simple — se completa al generar el borrador."
+              style={{ fontSize: 15, lineHeight: 1.6 }}
+            />
+            <div className="hint">Léelo primero: es el resumen llano de la necesidad real, sin jerga — distinto del perfil del cliente (a qué se dedica) de abajo.</div>
+          </div>
+
           {/* Inteligencia comercial */}
           <div className="card">
             <h3><Sparkles size={14} /> Inteligencia comercial · {country.name}</h3>
