@@ -86,6 +86,7 @@ const defaultEstimation = (countryKey = "PE", code) => {
     deliverables: [
       blankDeliverable("1. Kick-off, planificación y accesos"),
     ],
+    validDays: 30,
     margin: 0.35,
     adm: 0.045,
     com: 0.05,
@@ -196,7 +197,7 @@ function buildProposalHTML(est, calc, c, prose, logoDataUrl) {
   const pay = est.schedule.map((s, i) => `<tr><td>${i + 1}</td><td>${esc(s.hito)}</td><td class="r">${(s.pct * 100).toFixed(0)}%</td><td class="r">${fmtUSD(calc.PVfinal * s.pct)}</td></tr>`).join("");
   const valor = (prose.diferenciadores || []).filter(Boolean).map((v) => `<li>${esc(v)}</li>`).join("");
   const iaBlock = est.insight?.ia && !/no aplica/i.test(est.insight.ia)
-    ? `<section><h2>Innovación con Inteligencia Artificial</h2><p>${esc(est.insight.ia)}</p></section>` : "";
+    ? `<section class="ia-callout"><h2>✨ Innovación con Inteligencia Artificial</h2><p>${esc(est.insight.ia)}</p></section>` : "";
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Propuesta ${esc(est.client)} — ${esc(est.code)}</title>
 <style>
@@ -224,6 +225,13 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
 .invest small{opacity:.8}
 .foot{margin-top:46px;border-top:1px solid ${BRAND.lineSoft};padding-top:18px;color:${BRAND.muted};font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .tag{display:inline-block;background:${BRAND.accentSoft};color:${BRAND.accent};border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;margin:0 6px 6px 0}
+.highlight{background:${BRAND.accentSoft};border-left:4px solid ${BRAND.accent};border-radius:0 12px 12px 0;padding:22px 26px}
+.highlight h2{border-bottom:none;padding-bottom:0;margin-bottom:14px}
+.checklist{list-style:none;margin:0;padding:0}
+.checklist li{padding:6px 0 6px 28px;position:relative;font-size:14.5px}
+.checklist li::before{content:"✓";position:absolute;left:0;top:6px;color:${BRAND.accent};font-weight:700}
+.ia-callout{background:${BRAND.ink};color:#fff;border-radius:12px;padding:22px 26px}
+.ia-callout h2{color:#fff;border-bottom:none;padding-bottom:0;margin-bottom:10px}
 @media print{.page{padding:24px 30px}.cover{min-height:94vh}}
 </style></head><body>
 <div class="page">
@@ -242,7 +250,7 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
   <section><h2>Equipo asignado</h2><table><thead><tr><th>Perfil</th><th>Responsabilidad</th></tr></thead><tbody>${team || "<tr><td>Por definir</td><td></td></tr>"}</tbody></table></section>
   <section><h2>Cronograma de trabajo</h2><p>Duración estimada de <b>${weeks} semana${weeks > 1 ? "s" : ""}</b>, organizada por entregable con hitos de avance y validación con su equipo:</p>
     <table><thead><tr><th>Entregable</th><th>Avance en el tiempo</th><th class="r">Semanas</th></tr></thead><tbody>${gantt || "<tr><td>Por definir</td><td></td><td></td></tr>"}</tbody></table></section>
-  <section><h2>Valor agregado y diferenciadores</h2><ul>${valor}</ul></section>
+  <section class="highlight"><h2>★ Valor agregado y diferenciadores</h2><ul class="checklist">${valor}</ul></section>
   ${iaBlock}
   <section><h2>Por qué GRUPO EBIM</h2><p>${esc(prose.porQueEbim)}</p>
     <div><span class="tag">SAP S/4HANA</span><span class="tag">Desarrollo a medida</span><span class="tag">Cloud AWS · Azure · GCP</span><span class="tag">Inteligencia Artificial</span><span class="tag">+7 años</span></div></section>
@@ -251,7 +259,7 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
     <table style="margin-top:16px"><thead><tr><th>N°</th><th>Hito de pago</th><th class="r">%</th><th class="r">Monto USD</th></tr></thead><tbody>${pay}</tbody></table>
   </section>
   <section><h2>Siguientes pasos</h2><p>${esc(prose.cierre)}</p></section>
-  <div class="foot"><span>GRUPO EBIM SAC · Consultoría TI · Lima, Perú · www.grupoebim.com</span><span>${esc(est.code)} · Oferta válida por 30 días</span></div>
+  <div class="foot"><span>GRUPO EBIM SAC · Consultoría TI · Lima, Perú · www.grupoebim.com</span><span>${esc(est.code)} · Oferta válida por ${est.validDays || 30} días</span></div>
 </div></body></html>`;
 }
 
@@ -260,6 +268,8 @@ export default function App() {
   const [est, setEst] = useState(() => defaultEstimation());
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyCountryFilter, setHistoryCountryFilter] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -307,7 +317,8 @@ export default function App() {
 
   async function saveEstimation() {
     if (!est.client.trim()) { flash("Falta el nombre del cliente"); return; }
-    const payload = { ...est, savedAt: Date.now(), attachmentNames: attachments.filter((a) => a.kind !== "error").map((a) => a.name), totals: { CO: calc.CO, PVfinal: calc.PVfinal, rent: calc.rent } };
+    const savedAt = Date.now();
+    const payload = { ...est, savedAt, expiresAt: savedAt + (est.validDays || 30) * 86400000, attachmentNames: attachments.filter((a) => a.kind !== "error").map((a) => a.name), totals: { CO: calc.CO, PVfinal: calc.PVfinal, rent: calc.rent } };
     await store.set("est:" + est.code, JSON.stringify(payload));
     await refreshHistory();
     flash("Guardado " + est.code);
@@ -763,6 +774,11 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                 <div className="hint">Informativo. La cotización es siempre en USD.</div>
               </div>
             </div>
+            <div style={{ marginTop: 12, maxWidth: 220 }}>
+              <label>Validez de la oferta (días)</label>
+              <input className="num" type="number" step="1" min="1" value={est.validDays ?? 30} onChange={(e) => up({ validDays: Math.max(1, +e.target.value) })} />
+              <div className="hint">Se usa al guardar (fecha de vencimiento) y en la propuesta comercial.</div>
+            </div>
             <div className="note" style={{ marginTop: 12 }}>
               <Globe size={15} style={{ flexShrink: 0, marginTop: 1 }} />
               <span><b>{country.name}:</b> {country.note} Rentabilidad neta mínima sugerida <b>{pct(country.minRent)}</b>, descuento máx. competitivo <b>{pct(country.maxDesc)}</b>.</span>
@@ -921,10 +937,10 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           {/* Entregables */}
           <div className="card">
             <h3>Detalle de horas y costos por entregable</h3>
-            <table>
+            <table style={{ tableLayout: "fixed" }}>
               <thead><tr>
-                <th className="l">Entregable / actividad</th>
-                <th>Hrs Sr</th><th>Hrs Semi</th><th>Hrs Anl</th><th>Total hrs</th><th>Costo USD</th><th>Venta USD</th><th style={{ width: 36 }}></th>
+                <th className="l" style={{ width: "34%" }}>Entregable / actividad</th>
+                <th style={{ width: 64 }}>Hrs Sr</th><th style={{ width: 64 }}>Hrs Semi</th><th style={{ width: 64 }}>Hrs Anl</th><th style={{ width: 64 }}>Total hrs</th><th style={{ width: 90 }}>Costo USD</th><th style={{ width: 90 }}>Venta USD</th><th style={{ width: 36 }}></th>
               </tr></thead>
               <tbody>
                 {calc.rows.map((d, i) => (
@@ -1089,6 +1105,13 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               <div className="kv"><span>Utilidad neta</span><b style={{ color: rentColor }}>{fmtUSD2(calc.utilidad)}</b></div>
             </div>
           </div>
+
+          {est.insight?.estrategiaCierre && (
+            <div className="card" style={{ marginTop: 16, borderColor: "var(--gold)", background: "#FFFDF6" }}>
+              <div className="pricelabel" style={{ marginBottom: 8 }}>★ Estrategia de cierre recomendada</div>
+              <div style={{ fontSize: 13, lineHeight: 1.5 }}>{est.insight.estrategiaCierre}</div>
+            </div>
+          )}
         </aside>
         </div>
       </div>
@@ -1102,17 +1125,44 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               <button className="iconbtn" aria-label="Cerrar historial" title="Cerrar" style={{ marginLeft: "auto", color: "var(--ink)" }} onClick={() => setShowHistory(false)}><X size={18} /></button>
             </div>
             {history.length === 0 && <div className="note">Aún no hay cotizaciones guardadas. Usa <b>Guardar</b> para registrar la actual.</div>}
-            {history.map((h) => (
-              <div key={h.code} className="histcard" onClick={() => loadEstimation(h)}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{h.code}</span>
-                  <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted)" }}>{h.savedAt ? new Date(h.savedAt).toLocaleDateString() : ""}</span>
-                  <button className="iconbtn" aria-label={`Eliminar cotización ${h.code}`} title="Eliminar" onClick={(e) => { e.stopPropagation(); deleteEstimation(h.code); }}><Trash2 size={14} /></button>
-                </div>
-                <div style={{ fontWeight: 600, marginTop: 3 }}>{h.project || "(sin título)"}</div>
-                <div style={{ fontSize: 12, color: "var(--muted)" }}>{COUNTRIES[h.country]?.flag} {h.client} · {h.totals ? fmtUSD(h.totals.PVfinal) : ""} · rent. {h.totals ? pct(h.totals.rent) : "—"}</div>
-              </div>
-            ))}
+            {history.length > 0 && (() => {
+              const filtered = history.filter((h) =>
+                (!historyCountryFilter || h.country === historyCountryFilter) &&
+                (!historySearch.trim() || (h.client || "").toLowerCase().includes(historySearch.trim().toLowerCase()))
+              );
+              return (
+                <>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                    <input placeholder="Buscar por cliente…" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} style={{ flex: 1 }} />
+                    <select value={historyCountryFilter} onChange={(e) => setHistoryCountryFilter(e.target.value)} style={{ width: 140 }}>
+                      <option value="">Todos los países</option>
+                      {Object.entries(COUNTRIES).map(([k, c]) => <option key={k} value={k}>{c.flag} {c.name}</option>)}
+                    </select>
+                  </div>
+                  {filtered.length === 0 && <div className="note">Sin resultados para ese filtro.</div>}
+                  {filtered.map((h) => {
+                    const expired = h.expiresAt && h.expiresAt < Date.now();
+                    const expSoon = !expired && h.expiresAt && h.expiresAt - Date.now() < 5 * 86400000;
+                    return (
+                      <div key={h.code} className="histcard" onClick={() => loadEstimation(h)}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{h.code}</span>
+                          <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted)" }}>{h.savedAt ? new Date(h.savedAt).toLocaleDateString() : ""}</span>
+                          <button className="iconbtn" aria-label={`Eliminar cotización ${h.code}`} title="Eliminar" onClick={(e) => { e.stopPropagation(); deleteEstimation(h.code); }}><Trash2 size={14} /></button>
+                        </div>
+                        <div style={{ fontWeight: 600, marginTop: 3 }}>{h.project || "(sin título)"}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{COUNTRIES[h.country]?.flag} {h.client} · {h.totals ? fmtUSD(h.totals.PVfinal) : ""} · rent. {h.totals ? pct(h.totals.rent) : "—"}</div>
+                        {h.expiresAt && (
+                          <div style={{ fontSize: 11, marginTop: 4, color: expired ? "var(--bad)" : expSoon ? "var(--warn)" : "var(--muted)" }}>
+                            {expired ? "Vencida el " : "Vence el "}{new Date(h.expiresAt).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              );
+            })()}
             {history.length > 0 && (
               <div className="note" style={{ marginTop: 8 }}>
                 Clientes registrados: {[...new Set(history.map((h) => h.client).filter(Boolean))].map((cl) => `${cl} (${clientCount(cl)})`).join(" · ")}
