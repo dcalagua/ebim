@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient";
 import { store } from "./lib/store";
+import ebimLogoIsotipo from "./assets/brand/ebim-isotipo.png";
+import ebimLogoCompleto from "./assets/brand/ebim-logo-completo.png";
 
 /* =========================================================================
    EBIM — Estimador de Costos de Consultoría TI
@@ -32,7 +34,7 @@ const cloneRates = (r) => ({ senior: { ...r.senior }, semi: { ...r.semi }, anali
 // Paleta de marca EBIM — única fuente de verdad para la app y el HTML de la propuesta (que vive en su propio documento/iframe).
 const BRAND = {
   bg: "#EBEEF2", surface: "#FFFFFF", ink: "#15202E", muted: "#5E6E81", line: "#D9E0E8", lineSoft: "#E7ECF1",
-  accent: "#0B5563", accentSoft: "#E2EFF0", gold: "#9A6B12", ok: "#0F8A5F", warn: "#B7791F", bad: "#C13B3B",
+  accent: "#056769", accentSoft: "#E2EFF0", gold: "#9A6B12", ok: "#0F8A5F", warn: "#B7791F", bad: "#C13B3B",
   th: "#F4F8F9",
 };
 
@@ -144,7 +146,22 @@ function defaultProse(est) {
   };
 }
 
-function buildProposalHTML(est, calc, c, prose) {
+// Convierte el logo importado (URL de asset) a data-URL una sola vez, para que la propuesta
+// descargada sea un HTML autocontenido (sin depender de que el servidor siga corriendo).
+let logoDataUrlCache = null;
+async function getLogoDataUrl() {
+  if (logoDataUrlCache) return logoDataUrlCache;
+  const res = await fetch(ebimLogoCompleto);
+  const blob = await res.blob();
+  logoDataUrlCache = await new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.readAsDataURL(blob);
+  });
+  return logoDataUrlCache;
+}
+
+function buildProposalHTML(est, calc, c, prose, logoDataUrl) {
   const today = new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "long", year: "numeric" });
   const weeks = calc.weeksTotal || Math.max(1, Math.ceil(calc.totalHrs / (Math.max(1, est.team.filter((t) => t.perfil).length) * 32)));
   const gantt = est.deliverables.filter((d) => d.name).map((d) => {
@@ -166,7 +183,6 @@ function buildProposalHTML(est, calc, c, prose) {
 .disp{font-family:'Space Grotesk',sans-serif}
 .cover{min-height:88vh;display:flex;flex-direction:column;justify-content:center;border-left:6px solid ${BRAND.accent};padding-left:36px}
 .brand{display:flex;align-items:center;gap:12px;margin-bottom:40px}
-.mark{width:46px;height:46px;border-radius:10px;background:${BRAND.accent};color:#fff;display:grid;place-items:center;font-weight:700;font-family:'Space Grotesk';font-size:22px}
 .eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:${BRAND.accent};font-weight:600;margin-bottom:14px}
 .cover h1{font-family:'Space Grotesk';font-size:40px;line-height:1.1;margin:0 0 18px;font-weight:700}
 .cover .meta{color:${BRAND.muted};font-size:15px}
@@ -189,7 +205,7 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
 </style></head><body>
 <div class="page">
   <div class="cover">
-    <div class="brand"><div class="mark">E</div><div><div class="disp" style="font-weight:700;font-size:18px">GRUPO EBIM</div><div style="color:${BRAND.muted};font-size:13px">Consultoría en Tecnologías de la Información</div></div></div>
+    <div class="brand"><img src="${logoDataUrl}" alt="EBIM" style="height:32px"/><div style="color:${BRAND.muted};font-size:13px">GRUPO EBIM SAC · Consultoría en Tecnologías de la Información</div></div>
     <div class="eyebrow">Propuesta de servicios profesionales</div>
     <h1>${esc(est.project || "Servicio de consultoría TI")}</h1>
     <div class="meta">Preparada para <b>${esc(est.client || "—")}</b> · ${esc(c.name)}<br>${today}</div>
@@ -563,7 +579,8 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         cierre: p.cierre || prose.cierre,
       };
     } catch (err) { /* usa prose por defecto */ }
-    setProposalHTML(buildProposalHTML(est, compute(est), country, prose));
+    const logoDataUrl = await getLogoDataUrl();
+    setProposalHTML(buildProposalHTML(est, compute(est), country, prose, logoDataUrl));
     setShowProposal(true);
     setProposalLoading(false);
     flash("Propuesta comercial lista");
@@ -593,7 +610,6 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 80px;}
         .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;}
         .brand{display:flex;align-items:center;gap:10px;}
-        .brandmark{width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;}
         .reqchip{font-family:'JetBrains Mono',monospace;background:var(--ink);color:#fff;padding:6px 12px;border-radius:7px;font-weight:600;letter-spacing:.5px;}
         .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 13px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:.12s;}
         .btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -653,9 +669,9 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         {/* Topbar */}
         <div className="topbar">
           <div className="brand">
-            <div className="brandmark disp">E</div>
+            <img src={ebimLogoIsotipo} alt="EBIM" style={{ height: 26 }} />
             <div>
-              <div className="disp" style={{ fontWeight: 700, fontSize: 16 }}>EBIM · Estimador de Costos</div>
+              <div className="disp" style={{ fontWeight: 700, fontSize: 16 }}>Estimador de Costos</div>
               <div style={{ fontSize: 11, color: "var(--muted)" }}>Consultoría TI · cotización en USD</div>
             </div>
           </div>

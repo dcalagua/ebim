@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Mail, CheckCircle2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient";
+import ebimLogo from "./assets/brand/ebim-logo-completo.png";
 
 export default function Auth({ children }) {
   const [session, setSession] = useState(undefined);
@@ -32,10 +33,10 @@ export default function Auth({ children }) {
   if (!session) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#EBEEF2", fontFamily: "Inter, system-ui, sans-serif" }}>
-        <style>{`button:focus-visible, input:focus-visible { outline: 2px solid #0B5563; outline-offset: 2px; }`}</style>
+        <style>{`button:focus-visible, input:focus-visible { outline: 2px solid #056769; outline-offset: 2px; }`}</style>
         <form onSubmit={sendLink} style={{ background: "#fff", border: "1px solid #D9E0E8", borderRadius: 14, padding: 32, width: 360 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#0B5563", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, marginBottom: 16 }}>E</div>
-          <h2 style={{ margin: "0 0 6px", fontSize: 18 }}>EBIM · Estimador de Costos</h2>
+          <img src={ebimLogo} alt="EBIM" style={{ height: 30, marginBottom: 18, display: "block" }} />
+          <h2 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 600, color: "#15202E" }}>Estimador de Costos</h2>
           <p style={{ margin: "0 0 18px", fontSize: 13, color: "#5E6E81" }}>
             Sin contraseña: te enviamos un enlace de un solo uso a tu correo @ebim.pe / @grupoebim.com
           </p>
@@ -57,7 +58,7 @@ export default function Auth({ children }) {
                   style={{ width: "100%", border: "1px solid #D9E0E8", borderRadius: 8, padding: "9px 11px 9px 34px", fontSize: 14, boxSizing: "border-box" }}
                 />
               </div>
-              <button type="submit" disabled={loading} style={{ width: "100%", background: "#0B5563", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 600, cursor: "pointer" }}>
+              <button type="submit" disabled={loading} style={{ width: "100%", background: "#056769", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 600, cursor: "pointer" }}>
                 {loading ? "Enviando…" : "Enviarme el enlace de acceso"}
               </button>
             </>
