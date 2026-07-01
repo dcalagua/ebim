@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Mail, CheckCircle2 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient";
 
 export default function Auth({ children }) {
@@ -31,24 +32,33 @@ export default function Auth({ children }) {
   if (!session) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#EBEEF2", fontFamily: "Inter, system-ui, sans-serif" }}>
+        <style>{`button:focus-visible, input:focus-visible { outline: 2px solid #0B5563; outline-offset: 2px; }`}</style>
         <form onSubmit={sendLink} style={{ background: "#fff", border: "1px solid #D9E0E8", borderRadius: 14, padding: 32, width: 360 }}>
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "#0B5563", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, marginBottom: 16 }}>E</div>
           <h2 style={{ margin: "0 0 6px", fontSize: 18 }}>EBIM · Estimador de Costos</h2>
-          <p style={{ margin: "0 0 18px", fontSize: 13, color: "#5E6E81" }}>Acceso exclusivo para cuentas @ebim.pe / @grupoebim.com</p>
+          <p style={{ margin: "0 0 18px", fontSize: 13, color: "#5E6E81" }}>
+            Sin contraseña: te enviamos un enlace de un solo uso a tu correo @ebim.pe / @grupoebim.com
+          </p>
           {sent ? (
-            <p style={{ fontSize: 13, color: "#0F8A5F" }}>Revisa tu correo y haz clic en el enlace de acceso.</p>
+            <p style={{ fontSize: 13, color: "#0F8A5F", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>Enviamos un enlace a <b>{email}</b>. Ábrelo desde tu correo para entrar.</span>
+            </p>
           ) : (
             <>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu.nombre@ebim.pe"
-                style={{ width: "100%", border: "1px solid #D9E0E8", borderRadius: 8, padding: "9px 11px", fontSize: 14, marginBottom: 12, boxSizing: "border-box" }}
-              />
+              <div style={{ position: "relative", marginBottom: 12 }}>
+                <Mail size={16} style={{ position: "absolute", left: 11, top: 11, color: "#5E6E81" }} />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu.nombre@ebim.pe"
+                  style={{ width: "100%", border: "1px solid #D9E0E8", borderRadius: 8, padding: "9px 11px 9px 34px", fontSize: 14, boxSizing: "border-box" }}
+                />
+              </div>
               <button type="submit" disabled={loading} style={{ width: "100%", background: "#0B5563", color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 600, cursor: "pointer" }}>
-                {loading ? "Enviando…" : "Enviar enlace de acceso"}
+                {loading ? "Enviando…" : "Enviarme el enlace de acceso"}
               </button>
             </>
           )}

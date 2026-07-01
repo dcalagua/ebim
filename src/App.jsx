@@ -29,6 +29,13 @@ const COUNTRIES = {
 const TIERS = [["senior", "Senior / Arquitecto / PM"], ["semi", "Semi-Senior"], ["analista", "Analista"]];
 const cloneRates = (r) => ({ senior: { ...r.senior }, semi: { ...r.semi }, analista: { ...r.analista } });
 
+// Paleta de marca EBIM — única fuente de verdad para la app y el HTML de la propuesta (que vive en su propio documento/iframe).
+const BRAND = {
+  bg: "#EBEEF2", surface: "#FFFFFF", ink: "#15202E", muted: "#5E6E81", line: "#D9E0E8", lineSoft: "#E7ECF1",
+  accent: "#0B5563", accentSoft: "#E2EFF0", gold: "#9A6B12", ok: "#0F8A5F", warn: "#B7791F", bad: "#C13B3B",
+  th: "#F4F8F9",
+};
+
 // Resuelve el país detectado por la IA a una clave válida (solo Perú/Ecuador)
 const COUNTRY_ALIASES = { PERU: "PE", "PERÚ": "PE", ECUADOR: "EC" };
 function resolveCountryKey(val) {
@@ -154,35 +161,35 @@ function buildProposalHTML(est, calc, c, prose) {
 <title>Propuesta ${esc(est.client)} — ${esc(est.code)}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap');
-*{box-sizing:border-box} body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#15202E;line-height:1.55;background:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:'Inter',system-ui,sans-serif;color:${BRAND.ink};line-height:1.55;background:${BRAND.surface}}
 .page{max-width:820px;margin:0 auto;padding:48px 56px}
 .disp{font-family:'Space Grotesk',sans-serif}
-.cover{min-height:88vh;display:flex;flex-direction:column;justify-content:center;border-left:6px solid #0B5563;padding-left:36px}
+.cover{min-height:88vh;display:flex;flex-direction:column;justify-content:center;border-left:6px solid ${BRAND.accent};padding-left:36px}
 .brand{display:flex;align-items:center;gap:12px;margin-bottom:40px}
-.mark{width:46px;height:46px;border-radius:10px;background:#0B5563;color:#fff;display:grid;place-items:center;font-weight:700;font-family:'Space Grotesk';font-size:22px}
-.eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:#0B5563;font-weight:600;margin-bottom:14px}
+.mark{width:46px;height:46px;border-radius:10px;background:${BRAND.accent};color:#fff;display:grid;place-items:center;font-weight:700;font-family:'Space Grotesk';font-size:22px}
+.eyebrow{letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:${BRAND.accent};font-weight:600;margin-bottom:14px}
 .cover h1{font-family:'Space Grotesk';font-size:40px;line-height:1.1;margin:0 0 18px;font-weight:700}
-.cover .meta{color:#5E6E81;font-size:15px}
-.cover .meta b{color:#15202E}
-.req{display:inline-block;margin-top:26px;font-family:monospace;background:#15202E;color:#fff;padding:7px 14px;border-radius:7px;font-weight:600}
+.cover .meta{color:${BRAND.muted};font-size:15px}
+.cover .meta b{color:${BRAND.ink}}
+.req{display:inline-block;margin-top:26px;font-family:monospace;background:${BRAND.ink};color:#fff;padding:7px 14px;border-radius:7px;font-weight:600}
 section{margin:30px 0;page-break-inside:avoid}
-h2{font-family:'Space Grotesk';font-size:20px;color:#0B5563;border-bottom:2px solid #E2EFF0;padding-bottom:7px;margin:0 0 12px}
+h2{font-family:'Space Grotesk';font-size:20px;color:${BRAND.accent};border-bottom:2px solid ${BRAND.accentSoft};padding-bottom:7px;margin:0 0 12px}
 ul{margin:8px 0;padding-left:20px} li{margin:5px 0}
 table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
-td,th{padding:9px 10px;border-bottom:1px solid #E7ECF1;text-align:left;vertical-align:top}
-th{background:#F4F8F9;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#5E6E81}
+td,th{padding:9px 10px;border-bottom:1px solid ${BRAND.lineSoft};text-align:left;vertical-align:top}
+th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:${BRAND.muted}}
 .r{text-align:right}
-.invest{background:#0B5563;color:#fff;border-radius:14px;padding:26px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.invest{background:${BRAND.accent};color:#fff;border-radius:14px;padding:26px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
 .invest .label{letter-spacing:.14em;text-transform:uppercase;font-size:12px;opacity:.85}
 .invest .amt{font-family:'Space Grotesk';font-size:38px;font-weight:700;line-height:1}
 .invest small{opacity:.8}
-.foot{margin-top:46px;border-top:1px solid #E7ECF1;padding-top:18px;color:#5E6E81;font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.tag{display:inline-block;background:#E2EFF0;color:#0B5563;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;margin:0 6px 6px 0}
+.foot{margin-top:46px;border-top:1px solid ${BRAND.lineSoft};padding-top:18px;color:${BRAND.muted};font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.tag{display:inline-block;background:${BRAND.accentSoft};color:${BRAND.accent};border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;margin:0 6px 6px 0}
 @media print{.page{padding:24px 30px}.cover{min-height:94vh}}
 </style></head><body>
 <div class="page">
   <div class="cover">
-    <div class="brand"><div class="mark">E</div><div><div class="disp" style="font-weight:700;font-size:18px">GRUPO EBIM</div><div style="color:#5E6E81;font-size:13px">Consultoría en Tecnologías de la Información</div></div></div>
+    <div class="brand"><div class="mark">E</div><div><div class="disp" style="font-weight:700;font-size:18px">GRUPO EBIM</div><div style="color:${BRAND.muted};font-size:13px">Consultoría en Tecnologías de la Información</div></div></div>
     <div class="eyebrow">Propuesta de servicios profesionales</div>
     <h1>${esc(est.project || "Servicio de consultoría TI")}</h1>
     <div class="meta">Preparada para <b>${esc(est.client || "—")}</b> · ${esc(c.name)}<br>${today}</div>
@@ -578,7 +585,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
     <div className="ebim-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
-        .ebim-root{--bg:#EBEEF2;--surface:#FFFFFF;--ink:#15202E;--muted:#5E6E81;--line:#D9E0E8;--accent:#0B5563;--accent-soft:#E2EFF0;--gold:#9A6B12;--ok:#0F8A5F;--warn:#B7791F;--bad:#C13B3B;
+        .ebim-root{--bg:${BRAND.bg};--surface:${BRAND.surface};--ink:${BRAND.ink};--muted:${BRAND.muted};--line:${BRAND.line};--accent:${BRAND.accent};--accent-soft:${BRAND.accentSoft};--gold:${BRAND.gold};--ok:${BRAND.ok};--warn:${BRAND.warn};--bad:${BRAND.bad};
           font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;font-size:14px;line-height:1.45;}
         .ebim-root *{box-sizing:border-box;}
         .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
@@ -625,6 +632,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .pill.ok{background:#E6F5EE;color:var(--ok);} .pill.warn{background:#FBF1DD;color:var(--warn);} .pill.bad{background:#FBE6E6;color:var(--bad);}
         .iconbtn{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;}
         .iconbtn:hover{color:var(--bad);background:#FBE6E6;}
+        .btn:focus-visible, .iconbtn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
         .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:10px;font-weight:600;font-size:13px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.18);}
         .drawer{position:fixed;inset:0;background:rgba(20,32,46,.4);z-index:40;display:flex;justify-content:flex-end;}
         .drawer .panel{width:min(440px,100%);background:var(--bg);height:100%;overflow:auto;padding:20px;}
@@ -660,7 +668,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               {proposalLoading ? <Loader2 size={15} className="spin" /> : <FileText size={15} />} Propuesta
             </button>
             <button className="btn primary" onClick={exportExcel}><Download size={15} /> Excel</button>
-            <button className="btn ghost" onClick={() => supabase.auth.signOut()}><LogOut size={15} /></button>
+            <button className="btn ghost" aria-label="Cerrar sesión" title="Cerrar sesión" onClick={() => supabase.auth.signOut()}><LogOut size={15} /></button>
           </div>
         </div>
 
@@ -740,7 +748,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                         <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</div>
                         <div className="hint">{meta}</div>
                       </div>
-                      <button className="iconbtn" onClick={() => removeAttachment(a.id)}><X size={14} /></button>
+                      <button className="iconbtn" aria-label={`Quitar ${a.name}`} title="Quitar archivo" onClick={() => removeAttachment(a.id)}><X size={14} /></button>
                     </div>
                   );
                 })}
@@ -837,7 +845,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                       </select>
                     </td>
                     <td className="l"><input value={t.rol} onChange={(e) => { const team = [...est.team]; team[i] = { ...t, rol: e.target.value }; up({ team }); }} /></td>
-                    <td><button className="iconbtn" onClick={() => up({ team: est.team.filter((x) => x.id !== t.id) })}><Trash2 size={15} /></button></td>
+                    <td><button className="iconbtn" aria-label={`Quitar perfil ${t.perfil || ""}`} title="Quitar perfil" onClick={() => up({ team: est.team.filter((x) => x.id !== t.id) })}><Trash2 size={15} /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -863,7 +871,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                     <td className="num">{d.hrs}</td>
                     <td className="num" style={{ color: "var(--muted)" }}>{fmtUSD2(d.cost)}</td>
                     <td className="num">{fmtUSD2(d.sale)}</td>
-                    <td><button className="iconbtn" onClick={() => up({ deliverables: est.deliverables.filter((x) => x.id !== d.id) })}><Trash2 size={15} /></button></td>
+                    <td><button className="iconbtn" aria-label={`Quitar entregable ${d.name || ""}`} title="Quitar entregable" onClick={() => up({ deliverables: est.deliverables.filter((x) => x.id !== d.id) })}><Trash2 size={15} /></button></td>
                   </tr>
                 ))}
                 <tr className="total">
@@ -994,7 +1002,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                     <td><input className="num" type="number" value={(s.pct * 100).toFixed(0)} onChange={(e) => { const sc = [...est.schedule]; sc[i] = { ...s, pct: +e.target.value / 100 }; up({ schedule: sc }); }} /></td>
                     <td className="num">{fmtUSD(calc.PVfinal * s.pct)}</td>
                     <td className="num">{fmtLocal(calc.PVfinal * s.pct * est.fx, country.cur)}</td>
-                    <td><button className="iconbtn" onClick={() => up({ schedule: est.schedule.filter((x) => x.id !== s.id) })}><Trash2 size={15} /></button></td>
+                    <td><button className="iconbtn" aria-label={`Quitar hito ${s.hito || ""}`} title="Quitar hito" onClick={() => up({ schedule: est.schedule.filter((x) => x.id !== s.id) })}><Trash2 size={15} /></button></td>
                   </tr>
                 ))}
                 <tr className="total">
@@ -1016,7 +1024,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           <div className="panel" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
               <h3 className="disp" style={{ fontSize: 16, margin: 0 }}>Historial de cotizaciones</h3>
-              <button className="iconbtn" style={{ marginLeft: "auto", color: "var(--ink)" }} onClick={() => setShowHistory(false)}><X size={18} /></button>
+              <button className="iconbtn" aria-label="Cerrar historial" title="Cerrar" style={{ marginLeft: "auto", color: "var(--ink)" }} onClick={() => setShowHistory(false)}><X size={18} /></button>
             </div>
             {history.length === 0 && <div className="note">Aún no hay cotizaciones guardadas. Usa <b>Guardar</b> para registrar la actual.</div>}
             {history.map((h) => (
@@ -1024,7 +1032,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span className="mono" style={{ fontWeight: 700, fontSize: 13 }}>{h.code}</span>
                   <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted)" }}>{h.savedAt ? new Date(h.savedAt).toLocaleDateString() : ""}</span>
-                  <button className="iconbtn" onClick={(e) => { e.stopPropagation(); deleteEstimation(h.code); }}><Trash2 size={14} /></button>
+                  <button className="iconbtn" aria-label={`Eliminar cotización ${h.code}`} title="Eliminar" onClick={(e) => { e.stopPropagation(); deleteEstimation(h.code); }}><Trash2 size={14} /></button>
                 </div>
                 <div style={{ fontWeight: 600, marginTop: 3 }}>{h.project || "(sin título)"}</div>
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>{COUNTRIES[h.country]?.flag} {h.client} · {h.totals ? fmtUSD(h.totals.PVfinal) : ""} · rent. {h.totals ? pct(h.totals.rent) : "—"}</div>
@@ -1048,7 +1056,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
                 <button className="btn" onClick={() => proposalFrame.current?.contentWindow?.print()}><FileText size={15} /> Imprimir / PDF</button>
                 <button className="btn primary" onClick={downloadProposal}><Download size={15} /> Descargar</button>
-                <button className="iconbtn" style={{ color: "var(--ink)" }} onClick={() => setShowProposal(false)}><X size={18} /></button>
+                <button className="iconbtn" aria-label="Cerrar propuesta" title="Cerrar" style={{ color: "var(--ink)" }} onClick={() => setShowProposal(false)}><X size={18} /></button>
               </div>
             </div>
             <iframe ref={proposalFrame} title="Propuesta" srcDoc={proposalHTML} style={{ flex: 1, border: "none", width: "100%" }} />
