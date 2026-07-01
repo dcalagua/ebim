@@ -606,7 +606,13 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .ebim-root *{box-sizing:border-box;}
         .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
         .disp{font-family:'Space Grotesk',sans-serif;}
-        .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 80px;}
+        .wrap{max-width:1440px;margin:0 auto;padding:22px 18px 80px;}
+        .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
+        @media(max-width:1080px){.layout{grid-template-columns:1fr;}}
+        .summary-sticky{position:sticky;top:20px;}
+        @media(max-width:1080px){.summary-sticky{position:static;}}
+        .section-label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:10px 0 -8px 2px;}
+        .section-label:first-child{margin-top:0;}
         .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;}
         .brand{display:flex;align-items:center;gap:10px;}
         .reqchip{font-family:'JetBrains Mono',monospace;background:var(--ink);color:#fff;padding:6px 12px;border-radius:7px;font-weight:600;letter-spacing:.5px;}
@@ -615,8 +621,8 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
         .btn.primary:hover{filter:brightness(1.08);color:#fff;}
         .btn.ghost{background:transparent;}
-        .grid{display:grid;gap:16px;}
-        .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+        .grid{display:grid;gap:20px;}
+        .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;}
         .card h3{font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
         label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
         input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
@@ -625,17 +631,16 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         table{width:100%;border-collapse:collapse;}
         th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);font-weight:600;}
         th.l,td.l{text-align:left;}
-        td{padding:6px 8px;border-bottom:1px solid #EEF1F4;font-size:13px;}
+        td{padding:9px 10px;border-bottom:1px solid #EEF1F4;font-size:13px;}
         td .num{width:100%;border:1px solid transparent;background:transparent;padding:4px 6px;border-radius:6px;}
         td .num:hover{border-color:var(--line);}
         td .num:focus{background:#fff;}
-        tr.total td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;background:#F8FAFB;}
+        tbody tr:nth-child(even) td{background:#FAFBFC;}
+        tbody tr.total td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;background:#F8FAFB;}
         .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
         .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
         .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
         @media(max-width:760px){.row2,.row3,.row4{grid-template-columns:1fr;}}
-        .hero{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
-        @media(max-width:760px){.hero{grid-template-columns:1fr;}}
         .price{font-family:'Space Grotesk',sans-serif;font-size:46px;font-weight:700;letter-spacing:-1px;line-height:1;}
         .pricelabel{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);font-weight:600;margin-bottom:6px;}
         .gauge{height:9px;border-radius:6px;background:#EAEFF2;overflow:hidden;margin-top:14px;}
@@ -687,7 +692,9 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           </div>
         </div>
 
+        <div className="layout">
         <div className="grid">
+          <div className="section-label">Paso 1 · Captura</div>
           {/* Identificación */}
           <div className="card">
             <h3><Building2 size={14} /> Identificación del requerimiento</h3>
@@ -786,6 +793,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             {aiError && <div className="note" style={{ marginTop: 10, background: "#FBE6E6", color: "var(--bad)" }}><AlertTriangle size={15} /> {aiError}</div>}
           </div>
 
+          <div className="section-label">Paso 2 · Revisión IA</div>
           {/* Inteligencia comercial */}
           <div className="card">
             <h3><Sparkles size={14} /> Inteligencia comercial · {country.name}</h3>
@@ -820,6 +828,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado, propone IA y recomienda cómo cerrar. Puedes editarlo libremente.</div>
           </div>
 
+          <div className="section-label">Paso 3 · Ajuste financiero</div>
           {/* Supuestos / tarifas */}
           <div className="card">
             <h3>Supuestos · costo país vs. precio de venta (USD/hora)</h3>
@@ -898,6 +907,30 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => up({ deliverables: [...est.deliverables, blankDeliverable()] })}><Plus size={15} /> Añadir entregable</button>
           </div>
 
+          {/* Parámetros comerciales */}
+          <div className="card">
+            <h3>Parámetros comerciales (editables)</h3>
+            <div style={{ maxWidth: 260, marginBottom: 14 }}>
+              <label>Margen objetivo / piso (% s/ PV)</label>
+              <input className="num" type="number" step="0.5" value={(est.margin * 100).toFixed(1)} onChange={(e) => up({ margin: +e.target.value / 100 })} />
+            </div>
+            <div className="row3">
+              <div><label>Gastos administrativos</label><input className="num" type="number" step="0.1" value={(est.adm * 100).toFixed(1)} onChange={(e) => up({ adm: +e.target.value / 100 })} /></div>
+              <div><label>Gestión comercial — Carmen</label><input className="num" type="number" step="0.1" value={(est.com * 100).toFixed(1)} onChange={(e) => up({ com: +e.target.value / 100 })} /></div>
+              <div><label>Gestión MKT</label><input className="num" type="number" step="0.1" value={(est.mkt * 100).toFixed(1)} onChange={(e) => up({ mkt: +e.target.value / 100 })} /></div>
+            </div>
+            <div style={{ marginTop: 12, maxWidth: 260 }}>
+              <label>Descuento comercial</label>
+              <input className="num" type="number" step="1" value={(est.discount * 100).toFixed(0)} onChange={(e) => up({ discount: +e.target.value / 100 })} />
+              {est.discount > country.maxDesc && <div className="hint" style={{ color: "var(--warn)" }}>Por encima del descuento competitivo sugerido para {country.name} ({pct(country.maxDesc)}).</div>}
+            </div>
+            <div className="note" style={{ marginTop: 14, background: calc.grossMargin < est.margin ? "#FBF1DD" : "var(--accent-soft)", color: calc.grossMargin < est.margin ? "var(--warn)" : "var(--accent)" }}>
+              {calc.grossMargin < est.margin ? <AlertTriangle size={15} style={{ flexShrink: 0 }} /> : <CheckCircle2 size={15} style={{ flexShrink: 0 }} />}
+              <span>Margen bruto del precio competitivo: <b>{pct(calc.grossMargin)}</b> (precio venta {fmtUSD(calc.PVO)} vs. costo país {fmtUSD(calc.CO)}). Piso por margen objetivo: <b>{fmtUSD(calc.floorPrice)}</b>. {calc.grossMargin < est.margin ? "El precio de mercado queda por debajo de tu margen objetivo — decide si compites igual o subes precio." : "El precio competitivo cumple tu margen objetivo."}</span>
+            </div>
+          </div>
+
+          <div className="section-label">Paso 4 · Planificación</div>
           {/* Cronograma de trabajo (Gantt) */}
           <div className="card">
             <h3>Cronograma de trabajo · Gantt por entregable</h3>
@@ -940,70 +973,6 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <div className="hint">La IA propone la duración de cada entregable y los encadena. Edita "Inicio" para solapar fases (trabajo en paralelo) y "Sem." para ajustar la duración.</div>
           </div>
 
-          {/* Parámetros comerciales */}
-          <div className="card">
-            <h3>Parámetros comerciales (editables)</h3>
-            <div className="row4">
-              <div><label>Margen objetivo / piso (% s/ PV)</label><input className="num" type="number" step="0.5" value={(est.margin * 100).toFixed(1)} onChange={(e) => up({ margin: +e.target.value / 100 })} /></div>
-              <div><label>Gastos administrativos</label><input className="num" type="number" step="0.1" value={(est.adm * 100).toFixed(1)} onChange={(e) => up({ adm: +e.target.value / 100 })} /></div>
-              <div><label>Gestión comercial — Carmen</label><input className="num" type="number" step="0.1" value={(est.com * 100).toFixed(1)} onChange={(e) => up({ com: +e.target.value / 100 })} /></div>
-              <div><label>Gestión MKT</label><input className="num" type="number" step="0.1" value={(est.mkt * 100).toFixed(1)} onChange={(e) => up({ mkt: +e.target.value / 100 })} /></div>
-            </div>
-            <div style={{ marginTop: 12, maxWidth: 260 }}>
-              <label>Descuento comercial</label>
-              <input className="num" type="number" step="1" value={(est.discount * 100).toFixed(0)} onChange={(e) => up({ discount: +e.target.value / 100 })} />
-              {est.discount > country.maxDesc && <div className="hint" style={{ color: "var(--warn)" }}>Por encima del descuento competitivo sugerido para {country.name} ({pct(country.maxDesc)}).</div>}
-            </div>
-            <div className="note" style={{ marginTop: 14, background: calc.grossMargin < est.margin ? "#FBF1DD" : "var(--accent-soft)", color: calc.grossMargin < est.margin ? "var(--warn)" : "var(--accent)" }}>
-              {calc.grossMargin < est.margin ? <AlertTriangle size={15} style={{ flexShrink: 0 }} /> : <CheckCircle2 size={15} style={{ flexShrink: 0 }} />}
-              <span>Margen bruto del precio competitivo: <b>{pct(calc.grossMargin)}</b> (precio venta {fmtUSD(calc.PVO)} vs. costo país {fmtUSD(calc.CO)}). Piso por margen objetivo: <b>{fmtUSD(calc.floorPrice)}</b>. {calc.grossMargin < est.margin ? "El precio de mercado queda por debajo de tu margen objetivo — decide si compites igual o subes precio." : "El precio competitivo cumple tu margen objetivo."}</span>
-            </div>
-          </div>
-
-          {/* Hero precio */}
-          <div className="card hero">
-            <div>
-              <div className="pricelabel">★ Precio de venta final (sin IGV) · USD</div>
-              <div className="price">{fmtUSD(calc.PVfinal)}</div>
-              <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 6 }} className="mono">≈ {fmtLocal(calc.PVfinal * est.fx, country.cur)} · {est.discount > 0 ? `incluye ${pct(est.discount)} descuento` : "sin descuento"}</div>
-              <div className="gauge"><i style={{ width: Math.max(3, Math.min(100, (calc.rent / 0.4) * 100)) + "%", background: rentColor }} /></div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12 }}>
-                <span style={{ color: "var(--muted)" }}>Rentabilidad neta</span>
-                <span className="mono" style={{ fontWeight: 700, color: rentColor }}>{pct(calc.rent)} {calc.rent < country.minRent ? "· bajo el mínimo" : "· ok"}</span>
-              </div>
-            </div>
-            <div>
-              <div className="kv"><span>Costo operativo (país)</span><b>{fmtUSD2(calc.CO)}</b></div>
-              <div className="kv"><span>Precio venta operaciones</span><b>{fmtUSD2(calc.PVO)}</b></div>
-              <div className="kv"><span>Margen bruto</span><b>{pct(calc.grossMargin)}</b></div>
-              <div className="kv"><span>Gastos adm. (Carmen, MKT)</span><b>{fmtUSD2(calc.gastos)}</b></div>
-              <div className="kv"><span>Descuento aplicado</span><b>−{fmtUSD2(calc.PVO * est.discount)}</b></div>
-              <div className="kv"><span>Utilidad neta</span><b style={{ color: rentColor }}>{fmtUSD2(calc.utilidad)}</b></div>
-            </div>
-          </div>
-
-          {/* Escenarios de descuento */}
-          <div className="card">
-            <h3>Escenarios de descuento · alineado a {country.name}</h3>
-            <table>
-              <thead><tr><th className="l">Escenario</th><th>Desc.</th><th>Precio USD</th><th>Precio {country.cur}</th><th>Utilidad</th><th>Rentabilidad</th><th className="l">Recomendación</th></tr></thead>
-              <tbody>
-                {scen.map((s) => (
-                  <tr key={s.d}>
-                    <td className="l">{s.d === 0 ? "Sin descuento" : `Descuento ${s.d * 100}%`}</td>
-                    <td className="num">{(s.d * 100).toFixed(0)}%</td>
-                    <td className="num">{fmtUSD(s.price)}</td>
-                    <td className="num">{fmtLocal(s.price * est.fx, country.cur)}</td>
-                    <td className="num">{fmtUSD(s.util)}</td>
-                    <td className="num" style={{ color: s.light === "ok" ? "var(--ok)" : s.light === "warn" ? "var(--warn)" : "var(--bad)", fontWeight: 600 }}>{pct(s.rent)}</td>
-                    <td className="l"><span className={"pill " + s.light}>{s.light === "ok" ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}{s.txt}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="note" style={{ marginTop: 12 }}><AlertTriangle size={15} style={{ flexShrink: 0 }} /><span>Hoja de uso interno. El cliente recibe únicamente el precio llave en mano, sin desglose de descuentos ni márgenes. Mínimo aceptable para {country.name}: <b>{pct(country.minRent)}</b> de rentabilidad neta.</span></div>
-          </div>
-
           {/* Cronograma de pagos */}
           <div className="card">
             <h3>Cronograma de pagos</h3>
@@ -1030,6 +999,52 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             </table>
             <button className="btn ghost" style={{ marginTop: 10 }} onClick={() => up({ schedule: [...est.schedule, { id: crypto.randomUUID(), hito: "", pct: 0 }] })}><Plus size={15} /> Añadir hito</button>
           </div>
+
+          <div className="section-label">Uso interno</div>
+          {/* Escenarios de descuento */}
+          <div className="card">
+            <h3>Escenarios de descuento · alineado a {country.name}</h3>
+            <table>
+              <thead><tr><th className="l">Escenario</th><th>Desc.</th><th>Precio USD</th><th>Precio {country.cur}</th><th>Utilidad</th><th>Rentabilidad</th><th className="l">Recomendación</th></tr></thead>
+              <tbody>
+                {scen.map((s) => (
+                  <tr key={s.d}>
+                    <td className="l">{s.d === 0 ? "Sin descuento" : `Descuento ${s.d * 100}%`}</td>
+                    <td className="num">{(s.d * 100).toFixed(0)}%</td>
+                    <td className="num">{fmtUSD(s.price)}</td>
+                    <td className="num">{fmtLocal(s.price * est.fx, country.cur)}</td>
+                    <td className="num">{fmtUSD(s.util)}</td>
+                    <td className="num" style={{ color: s.light === "ok" ? "var(--ok)" : s.light === "warn" ? "var(--warn)" : "var(--bad)", fontWeight: 600 }}>{pct(s.rent)}</td>
+                    <td className="l"><span className={"pill " + s.light}>{s.light === "ok" ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}{s.txt}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="note" style={{ marginTop: 12 }}><AlertTriangle size={15} style={{ flexShrink: 0 }} /><span>Hoja de uso interno. El cliente recibe únicamente el precio llave en mano, sin desglose de descuentos ni márgenes. Mínimo aceptable para {country.name}: <b>{pct(country.minRent)}</b> de rentabilidad neta.</span></div>
+          </div>
+        </div>
+
+        <aside className="summary-sticky">
+          {/* Hero precio */}
+          <div className="card">
+            <div className="pricelabel">★ Precio de venta final (sin IGV) · USD</div>
+            <div className="price">{fmtUSD(calc.PVfinal)}</div>
+            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 6 }} className="mono">≈ {fmtLocal(calc.PVfinal * est.fx, country.cur)} · {est.discount > 0 ? `incluye ${pct(est.discount)} descuento` : "sin descuento"}</div>
+            <div className="gauge"><i style={{ width: Math.max(3, Math.min(100, (calc.rent / 0.4) * 100)) + "%", background: rentColor }} /></div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12 }}>
+              <span style={{ color: "var(--muted)" }}>Rentabilidad neta</span>
+              <span className="mono" style={{ fontWeight: 700, color: rentColor }}>{pct(calc.rent)} {calc.rent < country.minRent ? "· bajo el mínimo" : "· ok"}</span>
+            </div>
+            <div style={{ marginTop: 18, borderTop: "1px solid var(--line)", paddingTop: 6 }}>
+              <div className="kv"><span>Costo operativo (país)</span><b>{fmtUSD2(calc.CO)}</b></div>
+              <div className="kv"><span>Precio venta operaciones</span><b>{fmtUSD2(calc.PVO)}</b></div>
+              <div className="kv"><span>Margen bruto</span><b>{pct(calc.grossMargin)}</b></div>
+              <div className="kv"><span>Gastos adm. (Carmen, MKT)</span><b>{fmtUSD2(calc.gastos)}</b></div>
+              <div className="kv"><span>Descuento aplicado</span><b>−{fmtUSD2(calc.PVO * est.discount)}</b></div>
+              <div className="kv"><span>Utilidad neta</span><b style={{ color: rentColor }}>{fmtUSD2(calc.utilidad)}</b></div>
+            </div>
+          </div>
+        </aside>
         </div>
       </div>
 
