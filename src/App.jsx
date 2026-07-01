@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient";
 import { store } from "./lib/store";
-import ebimLogoIsotipo from "./assets/brand/ebim-isotipo.png";
 import ebimLogoCompleto from "./assets/brand/ebim-logo-completo.png";
 
 /* =========================================================================
@@ -402,7 +401,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
       const { data, error: fnError } = await supabase.functions.invoke("claude-proxy", {
         body: {
           model: "claude-sonnet-4-6",
-          max_tokens: 1000,
+          max_tokens: 8000,
           system: sys,
           messages: [{ role: "user", content }],
           tools: [{ type: "web_search_20250305", name: "web_search" }],
@@ -669,8 +668,8 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         {/* Topbar */}
         <div className="topbar">
           <div className="brand">
-            <img src={ebimLogoIsotipo} alt="EBIM" style={{ height: 26 }} />
-            <div>
+            <img src={ebimLogoCompleto} alt="EBIM" style={{ height: 36 }} />
+            <div style={{ borderLeft: "1px solid var(--line)", paddingLeft: 10 }}>
               <div className="disp" style={{ fontWeight: 700, fontSize: 16 }}>Estimador de Costos</div>
               <div style={{ fontSize: 11, color: "var(--muted)" }}>Consultoría TI · cotización en USD</div>
             </div>
