@@ -76,7 +76,7 @@ const defaultEstimation = (countryKey = "PE", code) => {
     fx: c.fx,
     rates: cloneRates(c.rates),
     context: "",
-    insight: { perfilCliente: "", competencia: "", valor: [], ia: "", estrategiaCierre: "" },
+    insight: { perfilCliente: "", competencia: "", valor: [], ia: "", estrategiaCierre: "", hechosClave: [] },
     team: [
       { id: crypto.randomUUID(), perfil: "Arquitecto TI / Consultor Senior", tier: "senior", rol: "Lidera diagnóstico, arquitectura y roadmap" },
       { id: crypto.randomUUID(), perfil: "Consultor Semi-Senior TI", tier: "semi", rol: "Levantamiento técnico: apps, plataformas, APIs" },
@@ -409,11 +409,12 @@ En CADA estimación SIEMPRE debes:
 El usuario de EBIM puede incluir INSTRUCCIONES o consideraciones (p. ej. "agrega un consultor de seguridad", "hazlo más competitivo", "incluye fase 2"): aplícalas. Si recibes una PROPUESTA ACTUAL en JSON, modifica ESA base y conserva lo no afectado, en lugar de empezar de cero.
 
 Tarea: a partir del CONTEXTO y de los DOCUMENTOS ADJUNTOS (BBP/Business Blueprint, transcripciones de Teams, actas, propuestas, diagramas): (a) DETECTA automáticamente el tipo de servicio/proyecto, el CLIENTE y el PAÍS del cliente; (b) propón el equipo y el desglose de entregables con horas por perfil para ese país. Si hay un BBP, deriva los entregables de los procesos y gaps; si hay transcripciones, extrae alcance, supuestos y compromisos. Usa web_search para validar cliente, competencia o tarifas locales. Devuelve EXCLUSIVAMENTE un objeto JSON válido (sin texto ni markdown) con esta forma exacta y conciso:
-{"cliente":"string (nombre del cliente detectado, o '')","pais":"string (PE o EC; o el nombre del país)","tipoProyecto":"string","perfilCliente":"string (investiga al cliente con web_search: a qué se dedica, industria, tamaño y qué ofrecerle; 2-3 frases)","equipo":[{"perfil":"string","tier":"senior|semi|analista","rol":"string"}],"entregables":[{"nombre":"string","hS":number,"hM":number,"hA":number,"semanas":number}],"cronograma":[{"hito":"string","pct":number}],"analisisCompetencia":"string (2-3 frases)","valorAgregado":["string","string"],"oportunidadIA":"string (1-2 frases; o 'No aplica')","estrategiaCierre":"string (cómo defender el precio resultante en términos relativos, sin inventar un monto en USD; qué enfatizar y riesgos; 2-3 frases)"}
+{"cliente":"string (nombre del cliente detectado, o '')","pais":"string (PE o EC; o el nombre del país)","tipoProyecto":"string","hechosClave":["string (cifras/datos LITERALES tomados de los documentos que usaste para dimensionar el alcance — ej. 'Catálogo de 15,000 SKUs iniciales', '5 usuarios en panel admin' — copia el número exacto del documento, nunca lo redondees ni lo inventes; 3-6 items)"],"perfilCliente":"string (investiga al cliente con web_search: a qué se dedica, industria, tamaño y qué ofrecerle; 2-3 frases)","equipo":[{"perfil":"string","tier":"senior|semi|analista","rol":"string"}],"entregables":[{"nombre":"string","hS":number,"hM":number,"hA":number,"semanas":number}],"cronograma":[{"hito":"string","pct":number}],"analisisCompetencia":"string (2-3 frases)","valorAgregado":["string","string"],"oportunidadIA":"string (1-2 frases; o 'No aplica')","estrategiaCierre":"string (cómo defender el precio resultante en términos relativos, sin inventar un monto en USD; qué enfatizar y riesgos; 2-3 frases)"}
 Reglas: hS=horas Senior/Arquitecto/PM, hM=horas Semi-Senior, hA=horas Analista, semanas=duración del entregable en semanas (entero ≥1). El país solo puede ser Perú (PE) o Ecuador (EC). Máximo 6 entregables, numéralos. El cronograma suma pct=1.0 (típico 0.35/0.35/0.30). Sé breve para no exceder el límite de tokens. Si el mensaje incluye una PROPUESTA ACTUAL, trata el texto del usuario como INSTRUCCIONES DE MODIFICACIÓN: aplícalas sobre esa propuesta y conserva todo lo que el usuario no pida cambiar (devuelve igualmente el JSON completo).
 CONSISTENCIA (importante): para el mismo alcance/contexto, dos corridas NO deberían producir precios finales muy distintos entre sí — eso rompe la confianza del comercial en la herramienta. Antes de fijar las horas, estima primero la complejidad y el tamaño real del alcance (número de procesos/módulos/integraciones descritos, cantidad de usuarios, plazos mencionados) y deriva las horas de ahí de forma metódica, no de una sensación distinta cada vez. Usa como referencia órdenes de magnitud típicos de EBIM para consultoría TI LatAm (un diagnóstico acotado ronda 80-150h totales; una implementación mediana con desarrollo, 400-900h; un programa multi-módulo, 1000h+) y ajusta según lo que el contexto realmente pida, no por defecto.
 ALCANCE (cuando los documentos son transcripciones/actas, no un BBP cerrado): incluye en las horas SOLO lo que quedó como compromiso o requerimiento explícito en la conversación; si algo se menciona como idea, posibilidad futura o "fase 2/nice to have", NO lo sumes al alcance de esta cotización — mencionarlo como oportunidad de venta futura en valorAgregado si aplica, pero no lo cotices. Esto es clave para que el alcance (y por lo tanto el precio) no varíe según cuánto de la charla decidas incluir cada vez.
-AISLAMIENTO DE web_search (crítico para estabilidad de precio): equipo, entregables, horas (hS/hM/hA) y semanas se derivan ÚNICA Y EXCLUSIVAMENTE del CONTEXTO y los DOCUMENTOS ADJUNTOS — nunca de lo que encuentres con web_search ni de tu conocimiento general de "proyectos similares". web_search es solo para enriquecer perfilCliente, analisisCompetencia y oportunidadIA (texto cualitativo); sus resultados varían entre corridas por naturaleza, así que si dejas que influyan en el dimensionamiento del alcance, el precio final deja de ser estable. Primero fija el alcance y las horas leyendo solo los documentos; después, sin tocar esas horas, usa web_search para el análisis de mercado.`;
+AISLAMIENTO DE web_search (crítico para estabilidad de precio): equipo, entregables, horas (hS/hM/hA) y semanas se derivan ÚNICA Y EXCLUSIVAMENTE del CONTEXTO y los DOCUMENTOS ADJUNTOS — nunca de lo que encuentres con web_search ni de tu conocimiento general de "proyectos similares". web_search es solo para enriquecer perfilCliente, analisisCompetencia y oportunidadIA (texto cualitativo); sus resultados varían entre corridas por naturaleza, así que si dejas que influyan en el dimensionamiento del alcance, el precio final deja de ser estable. Primero fija el alcance y las horas leyendo solo los documentos; después, sin tocar esas horas, usa web_search para el análisis de mercado.
+PRECISIÓN NUMÉRICA (crítico): antes de estimar horas, releé los documentos y extrae en "hechosClave" las cifras EXACTAS que mencionan (cantidad de SKUs/usuarios/sedes/registros, plazos, etc.), copiándolas TAL CUAL aparecen en el texto — nunca las redondees, aproximes ni cambies de una corrida a otra (si el documento dice "15,000 SKUs", es 15,000, no 20,000 ni 45,000). Basa las horas en esas cifras extraídas, no en una impresión general del tamaño del proyecto. Un error de cifra aquí es la causa más común de que el precio final salte entre corridas.`;
     const currentProposal = (est.team.some((t) => t.perfil) || est.deliverables.some((d) => d.name))
       ? `\n\nPROPUESTA ACTUAL (aplica sobre esta base las modificaciones pedidas; conserva lo no afectado):\n${JSON.stringify({ equipo: est.team.map((t) => ({ perfil: t.perfil, tier: t.tier, rol: t.rol })), entregables: est.deliverables.map((d) => ({ nombre: d.name, hS: d.hS, hM: d.hM, hA: d.hA, semanas: d.dur })) })}`
       : "";
@@ -478,6 +479,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           valor: Array.isArray(parsed.valorAgregado) ? parsed.valorAgregado : (parsed.valorAgregado ? [parsed.valorAgregado] : []),
           ia: parsed.oportunidadIA || "",
           estrategiaCierre: parsed.estrategiaCierre || "",
+          hechosClave: Array.isArray(parsed.hechosClave) ? parsed.hechosClave : [],
         },
       }));
       setDetected({ cliente: parsed.cliente || "", pais: detKey, paisNombre: COUNTRIES[detKey]?.name || parsed.pais || "", tipo: parsed.tipoProyecto || "" });
@@ -858,6 +860,17 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           {/* Inteligencia comercial */}
           <div className="card">
             <h3><Sparkles size={14} /> Inteligencia comercial · {country.name}</h3>
+            {est.insight.hechosClave?.length > 0 && (
+              <div className="note" style={{ marginBottom: 14, alignItems: "flex-start" }}>
+                <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>
+                  <b>Verifica estas cifras contra tus documentos</b> — son las que la IA usó para dimensionar el alcance:
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                    {est.insight.hechosClave.map((h, i) => <li key={i}>{h}</li>)}
+                  </ul>
+                </span>
+              </div>
+            )}
             <div style={{ marginBottom: 12 }}>
               <label>Perfil del cliente · a qué se dedica y qué ofrecerle (investigado por IA)</label>
               <textarea value={est.insight.perfilCliente} onChange={(e) => up({ insight: { ...est.insight, perfilCliente: e.target.value } })}
