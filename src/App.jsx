@@ -878,13 +878,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                   placeholder="Copilotos, chatbots, automatización, BI, agentes… o 'No aplica'." />
               </div>
             </div>
-            <div style={{ marginTop: 12 }}>
-              <label>★ Estrategia de cierre (recomendación del estratega — uso interno)</label>
-              <textarea value={est.insight.estrategiaCierre} onChange={(e) => up({ insight: { ...est.insight, estrategiaCierre: e.target.value } })}
-                placeholder="Postura de precio para ganar siendo rentable, qué enfatizar ante este cliente y riesgos a cuidar…"
-                style={{ borderColor: "var(--gold)", background: "#FFFDF6" }} />
-            </div>
-            <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado, propone IA y recomienda cómo cerrar. Puedes editarlo libremente.</div>
+            <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado y propone IA. La estrategia de cierre recomendada está en el panel de precio, a la derecha.</div>
           </div>
 
           <div className="section-label" id="step-ajuste">Paso 3 · Ajuste financiero</div>
@@ -1108,12 +1102,13 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             </div>
           </div>
 
-          {est.insight?.estrategiaCierre && (
-            <div className="card" style={{ marginTop: 16, borderColor: "var(--gold)", background: "#FFFDF6" }}>
-              <div className="pricelabel" style={{ marginBottom: 8 }}>★ Estrategia de cierre recomendada</div>
-              <div style={{ fontSize: 13, lineHeight: 1.5 }}>{est.insight.estrategiaCierre}</div>
-            </div>
-          )}
+          <div className="card" style={{ marginTop: 16, borderColor: "var(--gold)", background: "#FFFDF6" }}>
+            <div className="pricelabel" style={{ marginBottom: 8 }}>★ Estrategia de cierre recomendada</div>
+            <textarea value={est.insight.estrategiaCierre} onChange={(e) => up({ insight: { ...est.insight, estrategiaCierre: e.target.value } })}
+              placeholder="Postura de precio para ganar siendo rentable, qué enfatizar ante este cliente y riesgos a cuidar…"
+              style={{ borderColor: "var(--gold)", background: "#fff", fontSize: 13 }} />
+            <div className="hint" style={{ marginTop: 6 }}>La IA la completa al generar el borrador (uso interno). Puedes editarla libremente.</div>
+          </div>
         </aside>
         </div>
       </div>
