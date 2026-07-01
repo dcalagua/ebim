@@ -51,8 +51,6 @@ function resolveCountryKey(val) {
 
 const fmtUSD = (n) =>
   "$" + (Number.isFinite(n) ? n : 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-const fmtUSD2 = (n) =>
-  "$" + (Number.isFinite(n) ? n : 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtLocal = (n, cur) =>
   (Number.isFinite(n) ? n : 0).toLocaleString("es-PE", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " " + cur;
 const pct = (n) => (Number.isFinite(n) ? (n * 100).toFixed(1) : "0.0") + "%";
@@ -193,6 +191,7 @@ function buildProposalHTML(est, calc, c, prose, logoDataUrl) {
     return `<tr><td style="font-size:13px">${esc(d.name)}</td><td style="width:58%"><div style="position:relative;height:18px;background:#EEF3F5;border-radius:5px"><div style="position:absolute;left:${(s / weeks) * 100}%;width:${(du / weeks) * 100}%;top:0;bottom:0;background:#0B5563;border-radius:5px"></div></div></td><td class="r" style="white-space:nowrap;font-size:12px;color:#5E6E81">Sem ${s + 1}–${s + du}</td></tr>`;
   }).join("");
   const deliv = est.deliverables.filter((d) => d.name).map((d) => `<li>${esc(d.name)}</li>`).join("");
+  const hechos = (est.insight?.hechosClave || []).filter(Boolean).map((h) => `<li>${esc(h)}</li>`).join("");
   const team = est.team.filter((t) => t.perfil).map((t) => `<tr><td><b>${esc(t.perfil)}</b></td><td>${esc(t.rol)}</td></tr>`).join("");
   const pay = est.schedule.map((s, i) => `<tr><td>${i + 1}</td><td>${esc(s.hito)}</td><td class="r">${(s.pct * 100).toFixed(0)}%</td><td class="r">${fmtUSD(calc.PVfinal * s.pct)}</td></tr>`).join("");
   const valor = (prose.diferenciadores || []).filter(Boolean).map((v) => `<li>${esc(v)}</li>`).join("");
@@ -246,7 +245,9 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
   <section><h2>Resumen ejecutivo</h2><p>${esc(prose.entendimiento)}</p></section>
   ${est.insight?.perfilCliente ? `<section><h2>Entendimiento de su negocio</h2><p>${esc(est.insight.perfilCliente)}</p></section>` : ""}
   <section><h2>Nuestro enfoque</h2><p>${esc(prose.enfoque)}</p></section>
-  <section><h2>Alcance y entregables</h2><ul>${deliv || "<li>Por definir</li>"}</ul></section>
+  <section><h2>Alcance y entregables</h2><ul>${deliv || "<li>Por definir</li>"}</ul>
+    ${hechos ? `<p style="margin-top:14px;font-size:13px;color:${BRAND.muted}"><b>Dimensionado sobre la base de:</b></p><ul style="font-size:13px;color:${BRAND.muted}">${hechos}</ul>` : ""}
+  </section>
   <section><h2>Equipo asignado</h2><table><thead><tr><th>Perfil</th><th>Responsabilidad</th></tr></thead><tbody>${team || "<tr><td>Por definir</td><td></td></tr>"}</tbody></table></section>
   <section><h2>Cronograma de trabajo</h2><p>Duración estimada de <b>${weeks} semana${weeks > 1 ? "s" : ""}</b>, organizada por entregable con hitos de avance y validación con su equipo:</p>
     <table><thead><tr><th>Entregable</th><th>Avance en el tiempo</th><th class="r">Semanas</th></tr></thead><tbody>${gantt || "<tr><td>Por definir</td><td></td><td></td></tr>"}</tbody></table></section>
@@ -931,9 +932,9 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                     <td className="l"><input value={t.perfil} onChange={(e) => { const team = [...est.team]; team[i] = { ...t, perfil: e.target.value }; up({ team }); }} /></td>
                     <td className="l">
                       <select value={t.tier} onChange={(e) => { const team = [...est.team]; team[i] = { ...t, tier: e.target.value }; up({ team }); }}>
-                        <option value="senior">Senior · venta {fmtUSD2(est.rates.senior.sale)}</option>
-                        <option value="semi">Semi · venta {fmtUSD2(est.rates.semi.sale)}</option>
-                        <option value="analista">Analista · venta {fmtUSD2(est.rates.analista.sale)}</option>
+                        <option value="senior">Senior · venta {fmtUSD(est.rates.senior.sale)}</option>
+                        <option value="semi">Semi · venta {fmtUSD(est.rates.semi.sale)}</option>
+                        <option value="analista">Analista · venta {fmtUSD(est.rates.analista.sale)}</option>
                       </select>
                     </td>
                     <td className="l"><input value={t.rol} onChange={(e) => { const team = [...est.team]; team[i] = { ...t, rol: e.target.value }; up({ team }); }} /></td>
@@ -961,14 +962,14 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
                       <td key={f}><input className="num" type="number" value={est.deliverables[i][f] || ""} onChange={(e) => { const dd = [...est.deliverables]; dd[i] = { ...est.deliverables[i], [f]: +e.target.value }; up({ deliverables: dd }); }} /></td>
                     ))}
                     <td className="num">{d.hrs}</td>
-                    <td className="num" style={{ color: "var(--muted)" }}>{fmtUSD2(d.cost)}</td>
-                    <td className="num">{fmtUSD2(d.sale)}</td>
+                    <td className="num" style={{ color: "var(--muted)" }}>{fmtUSD(d.cost)}</td>
+                    <td className="num">{fmtUSD(d.sale)}</td>
                     <td><button className="iconbtn" aria-label={`Quitar entregable ${d.name || ""}`} title="Quitar entregable" onClick={() => up({ deliverables: est.deliverables.filter((x) => x.id !== d.id) })}><Trash2 size={15} /></button></td>
                   </tr>
                 ))}
                 <tr className="total">
                   <td className="l">TOTAL</td><td></td><td></td><td></td>
-                  <td className="num">{calc.totalHrs}</td><td className="num" style={{ color: "var(--muted)" }}>{fmtUSD2(calc.CO)}</td><td className="num">{fmtUSD2(calc.PVO)}</td><td></td>
+                  <td className="num">{calc.totalHrs}</td><td className="num" style={{ color: "var(--muted)" }}>{fmtUSD(calc.CO)}</td><td className="num">{fmtUSD(calc.PVO)}</td><td></td>
                 </tr>
               </tbody>
             </table>
@@ -1108,12 +1109,12 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               <span className="mono" style={{ fontWeight: 700, color: rentColor }}>{pct(calc.rent)} {calc.rent < country.minRent ? "· bajo el mínimo" : "· ok"}</span>
             </div>
             <div style={{ marginTop: 18, borderTop: "1px solid var(--line)", paddingTop: 6 }}>
-              <div className="kv"><span>Costo operativo (país)</span><b>{fmtUSD2(calc.CO)}</b></div>
-              <div className="kv"><span>Precio venta operaciones</span><b>{fmtUSD2(calc.PVO)}</b></div>
+              <div className="kv"><span>Costo operativo (país)</span><b>{fmtUSD(calc.CO)}</b></div>
+              <div className="kv"><span>Precio venta operaciones</span><b>{fmtUSD(calc.PVO)}</b></div>
               <div className="kv"><span>Margen bruto</span><b>{pct(calc.grossMargin)}</b></div>
-              <div className="kv"><span>Gastos adm. (Carmen, MKT)</span><b>{fmtUSD2(calc.gastos)}</b></div>
-              <div className="kv"><span>Descuento aplicado</span><b>−{fmtUSD2(calc.PVO * est.discount)}</b></div>
-              <div className="kv"><span>Utilidad neta</span><b style={{ color: rentColor }}>{fmtUSD2(calc.utilidad)}</b></div>
+              <div className="kv"><span>Gastos adm. (Carmen, MKT)</span><b>{fmtUSD(calc.gastos)}</b></div>
+              <div className="kv"><span>Descuento aplicado</span><b>−{fmtUSD(calc.PVO * est.discount)}</b></div>
+              <div className="kv"><span>Utilidad neta</span><b style={{ color: rentColor }}>{fmtUSD(calc.utilidad)}</b></div>
             </div>
           </div>
 
