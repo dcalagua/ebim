@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import mammoth from "mammoth";
 import {
   Globe, Sparkles, Plus, Trash2, Save, Download, History, FileSpreadsheet,
-  AlertTriangle, CheckCircle2, RotateCcw, Building2, Loader2, X, Paperclip,
+  AlertTriangle, CheckCircle2, RotateCcw, Loader2, X, Paperclip,
   FileText, FileType, Image as ImageIcon, UploadCloud, LogOut, ChevronDown
 } from "lucide-react";
 import { supabase } from "./lib/supabaseClient";
@@ -752,6 +752,11 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .histcard:hover{border-color:var(--accent);}
         .note{font-size:12px;color:var(--muted);background:var(--accent-soft);border-radius:8px;padding:9px 12px;display:flex;gap:8px;}
         .aiwrap{background:linear-gradient(180deg,#F3FAFA,#fff);border:1px solid var(--accent-soft);}
+        .labelchip{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+        .labelchip input,.labelchip select{width:auto;min-width:160px;padding:5px 9px;font-size:13px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink);}
+        .card.compact{padding:14px 18px;}
+        .card.compact .row3{gap:12px;}
+        .card.compact label{margin-bottom:3px;}
         .hint{font-size:11.5px;color:var(--muted);margin-top:4px;}
         .dropzone{display:flex;align-items:center;gap:12px;border:1.5px dashed var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;color:var(--muted);background:#fff;transition:.12s;}
         .dropzone:hover,.dropzone.over{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
@@ -799,47 +804,22 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         <div className="layout">
         <div className="grid">
           <div className="section-label" id="step-captura">Paso 1 · Captura</div>
-          {/* Identificación */}
-          <div className="card">
-            <h3><Building2 size={14} /> Identificación del requerimiento</h3>
-            <div className="row4">
-              <div>
-                <label>Cliente</label>
+          {/* IA — ahora la protagonista de Paso 1 */}
+          <div className="card aiwrap">
+            <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
+              <span className="labelchip">Cliente
                 <input value={est.client} onChange={(e) => up({ client: e.target.value })} placeholder="p. ej. BESCO S.A.C." />
-                {est.client.trim() && clientCount(est.client) > 0 && (
-                  <div className="hint">Este cliente tiene <b>{clientCount(est.client)}</b> cotización(es) guardada(s).</div>
-                )}
-              </div>
-              <div>
-                <label>Proyecto</label>
-                <input value={est.project} onChange={(e) => up({ project: e.target.value })} placeholder="Diagnóstico de Arquitectura TI" />
-              </div>
-              <div>
-                <label><Globe size={11} style={{ display: "inline", marginRight: 4 }} /> País (mercado)</label>
+              </span>
+              <span className="labelchip">País
                 <select value={est.country} onChange={(e) => changeCountry(e.target.value)}>
                   {Object.entries(COUNTRIES).map(([k, c]) => <option key={k} value={k}>{c.flag} {c.name}</option>)}
                 </select>
-              </div>
-              <div>
-                <label>T.C. referencial ({country.cur}/USD)</label>
-                <input className="num" type="number" step="0.01" value={est.fx} onChange={(e) => up({ fx: +e.target.value })} />
-                <div className="hint">Informativo. La cotización es siempre en USD.</div>
-              </div>
+              </span>
+              {est.client.trim() && clientCount(est.client) > 0 && (
+                <span className="hint">Este cliente tiene <b>{clientCount(est.client)}</b> cotización(es) guardada(s).</span>
+              )}
             </div>
-            <div style={{ marginTop: 12, maxWidth: 220 }}>
-              <label>Validez de la oferta (días)</label>
-              <input className="num" type="number" step="1" min="1" value={est.validDays ?? 30} onChange={(e) => up({ validDays: Math.max(1, +e.target.value) })} />
-              <div className="hint">Se usa al guardar (fecha de vencimiento) y en la propuesta comercial.</div>
-            </div>
-            <div className="note" style={{ marginTop: 12 }}>
-              <Globe size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span><b>{country.name}:</b> {country.note} Rentabilidad neta mínima sugerida <b>{pct(country.minRent)}</b>, descuento máx. competitivo <b>{pct(country.maxDesc)}</b>.</span>
-            </div>
-          </div>
-
-          {/* IA */}
-          <div className="card aiwrap">
-            <h3><Sparkles size={14} /> Borrador inteligente · tu prompt</h3>
+            <h3 style={{ fontSize: 15, textTransform: "none", letterSpacing: 0, color: "var(--ink)" }}><Sparkles size={16} /> Borrador inteligente · tu prompt</h3>
             <label>Tu prompt / instrucciones (alcance, modificaciones, consideraciones…)</label>
             <textarea value={est.context} onChange={(e) => up({ context: e.target.value })}
               placeholder="Escribe aquí como si hablaras conmigo: 'estima este BBP', 'agrega capacitación', 'sube las horas del PM', 'aplica 8% de descuento', 'enfócalo en migración cloud'… Adjunta documentos abajo y pulsa Analizar." />
@@ -902,7 +882,28 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             {aiError && <div className="note" style={{ marginTop: 10, background: "#FBE6E6", color: "var(--bad)" }}><AlertTriangle size={15} /> {aiError}</div>}
           </div>
 
-          <div className="section-label" id="step-revision">Paso 2 · Revisión IA</div>
+          {/* Panel compacto: título, T.C. y validez — secundario frente al prompt */}
+          <div className="card compact">
+            <div className="row3">
+              <div>
+                <label>Proyecto</label>
+                <input value={est.project} onChange={(e) => up({ project: e.target.value })} placeholder="Diagnóstico de Arquitectura TI" />
+              </div>
+              <div>
+                <label>T.C. referencial ({country.cur}/USD)</label>
+                <input className="num" type="number" step="0.01" value={est.fx} onChange={(e) => up({ fx: +e.target.value })} />
+              </div>
+              <div>
+                <label>Validez de la oferta (días)</label>
+                <input className="num" type="number" step="1" min="1" value={est.validDays ?? 30} onChange={(e) => up({ validDays: Math.max(1, +e.target.value) })} />
+              </div>
+            </div>
+            <div className="note" style={{ marginTop: 12 }}>
+              <Globe size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span><b>{country.name}:</b> {country.note} Rentabilidad neta mínima sugerida <b>{pct(country.minRent)}</b>, descuento máx. competitivo <b>{pct(country.maxDesc)}</b>.</span>
+            </div>
+          </div>
+
           {/* Resumen del requerimiento */}
           <div className="card" style={{ borderLeft: "4px solid var(--accent)" }}>
             <h3><FileText size={14} /> Resumen del requerimiento — qué necesita el cliente</h3>
@@ -915,6 +916,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
             <div className="hint">Léelo primero: es el resumen llano de la necesidad real, sin jerga — distinto del perfil del cliente (a qué se dedica) de abajo.</div>
           </div>
 
+          <div className="section-label" id="step-revision">Paso 2 · Revisión IA</div>
           {/* Inteligencia comercial */}
           <div className="card">
             <h3><Sparkles size={14} /> Inteligencia comercial · {country.name}</h3>
