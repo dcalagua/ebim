@@ -23,7 +23,7 @@ const EBIM_PROFILE = `GRUPO EBIM SAC (RUC 20602517986, San Isidro - Lima, Perú;
 const COUNTRIES = {
   PE: { name: "Perú", flag: "🇵🇪", cur: "PEN", fx: 3.75, minRent: 0.20, maxDesc: 0.10, note: "Mercado base de EBIM. Competencia local fuerte en SAP y desarrollo; diferénciate por experiencia y entregables accionables.",
         rates: { senior: { cost: 26, sale: 62.5 }, semi: { cost: 17, sale: 41.67 }, analista: { cost: 11, sale: 25 } } },
-  EC: { name: "Ecuador", flag: "🇪🇨", cur: "USD", fx: 1, minRent: 0.20, maxDesc: 0.10, note: "Economía dolarizada: precios en USD directos, sin riesgo cambiario. Menos competencia SAP local que Perú; oportunidad de posicionar valor regional.",
+  EC: { name: "Ecuador", flag: "🇪🇨", cur: "USD", fx: 1, minRent: 0.25, maxDesc: 0.05, note: "Economía dolarizada: precios en USD directos, sin riesgo cambiario. Menos competencia SAP local que Perú — política más exigente (piso de rentabilidad más alto, menos margen de descuento) para capturar esa ventaja.",
         rates: { senior: { cost: 24, sale: 58 }, semi: { cost: 16, sale: 38 }, analista: { cost: 10, sale: 23 } } },
 };
 
@@ -113,7 +113,9 @@ function compute(est) {
   const totalHrs = rows.reduce((s, x) => s + x.hrs, 0);
   const grossMargin = PVO > 0 ? (PVO - CO) / PVO : 0;        // margen bruto resultante
   const floorPrice = est.margin < 1 ? CO / (1 - est.margin) : CO; // piso por margen objetivo
-  const gAdm = est.adm * PVO, gCom = est.com * PVO, gMkt = est.mkt * PVO;
+  // Gastos sobre CO (costo país), no sobre PVO: si no, un descuento alto los "encoge" y
+  // la rentabilidad aparente queda inflada justo cuando más importa que sea realista (decisión de Lia).
+  const gAdm = est.adm * CO, gCom = est.com * CO, gMkt = est.mkt * CO;
   const gastos = gAdm + gCom + gMkt;
   const PVfinal = PVO * (1 - est.discount);
   const utilidad = PVfinal - CO - gastos;
@@ -185,6 +187,11 @@ async function getLogoDataUrl() {
 
 function buildProposalHTML(est, calc, c, prose, logoDataUrl) {
   const today = new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "long", year: "numeric" });
+  // Rango de negociación en vez de un número rígido (decisión de Lia): techo = precio ya configurado,
+  // piso = lo más bajo que EBIM puede llegar sin perder margen, dado el descuento máximo competitivo del país.
+  const precioTecho = calc.PVfinal;
+  const precioPiso = Math.min(precioTecho, calc.PVO * (1 - c.maxDesc));
+  const hayRango = precioTecho - precioPiso > 1;
   const weeks = calc.weeksTotal || Math.max(1, Math.ceil(calc.totalHrs / (Math.max(1, est.team.filter((t) => t.perfil).length) * 32)));
   const gantt = est.deliverables.filter((d) => d.name).map((d) => {
     const s = d.start || 0, du = d.dur || 1;
@@ -256,7 +263,11 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
   <section><h2>Por qué GRUPO EBIM</h2><p>${esc(prose.porQueEbim)}</p>
     <div><span class="tag">SAP S/4HANA</span><span class="tag">Desarrollo a medida</span><span class="tag">Cloud AWS · Azure · GCP</span><span class="tag">Inteligencia Artificial</span><span class="tag">+7 años</span></div></section>
   <section><h2>Inversión</h2>
-    <div class="invest"><div><div class="label">Inversión total — llave en mano</div><small>No incluye IGV</small></div><div style="text-align:right"><div class="amt">USD ${fmtUSD(calc.PVfinal).replace("$", "")}</div><small>≈ ${fmtLocal(calc.PVfinal * est.fx, c.cur)}</small></div></div>
+    <div class="invest"><div><div class="label">Inversión — llave en mano</div><small>No incluye IGV${hayRango ? " · rango según alcance final acordado" : ""}</small></div><div style="text-align:right">
+      ${hayRango
+        ? `<div class="amt">USD ${fmtUSD(precioPiso).replace("$", "")} – ${fmtUSD(precioTecho).replace("$", "")}</div><small>≈ ${fmtLocal(precioPiso * est.fx, c.cur)} – ${fmtLocal(precioTecho * est.fx, c.cur)}</small>`
+        : `<div class="amt">USD ${fmtUSD(precioTecho).replace("$", "")}</div><small>≈ ${fmtLocal(precioTecho * est.fx, c.cur)}</small>`}
+    </div></div>
     <table style="margin-top:16px"><thead><tr><th>N°</th><th>Hito de pago</th><th class="r">%</th><th class="r">Monto USD</th></tr></thead><tbody>${pay}</tbody></table>
   </section>
   <section><h2>Siguientes pasos</h2><p>${esc(prose.cierre)}</p></section>
@@ -505,7 +516,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
     A.push(["Perfil", "Costo país (USD/h)", "Precio venta (USD/h)"]);
     TIERS.forEach(([k, label]) => A.push([label, est.rates[k].cost, est.rates[k].sale]));
     A.push(["Margen objetivo / piso (% s/ PV)", est.margin, ""]);
-    A.push(["Gastos Adm. + Comercial + MKT (% s/ PV)", est.adm + est.com + est.mkt, ""]);
+    A.push(["Gastos Adm. + Comercial + MKT (% s/ Costo País)", est.adm + est.com + est.mkt, ""]);
     A.push([]);
     A.push(["EQUIPO DEL PROYECTO"]);
     A.push(["Perfil", "Venta USD/h", "Rol en el proyecto"]);
