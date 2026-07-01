@@ -15,7 +15,18 @@ import ebimLogoCompleto from "./assets/brand/ebim-logo-completo.png";
    Moneda de cotización: USD. Tarifas referenciales por país (editables).
    ========================================================================= */
 
-const EBIM_PROFILE = `GRUPO EBIM SAC (RUC 20602517986, San Isidro - Lima, Perú; presencia en Perú y Ecuador; ~11-50 personas; +7 años). Consultora de TI. Servicios: Consultoría e implementación SAP S/4HANA (módulos SD MM FI CO PP PM QM PS HR TRM TMS VMS IM WM, BTP, FIORI, BASIS, ABAP), desarrollo de software web/móvil a medida, arquitectura cloud (AWS/Azure/GCP) y migraciones, BI/QLIK, IA/chatbots, IoT, outsourcing de personal TI, mesa de ayuda 24/7, soporte y AMS. Trabaja con metodologías ágiles. Perfiles típicos: Arquitecto TI/Consultor Senior, Consultor Semi-Senior, Analista de Procesos/Capacidades TI y PM/Coordinador.`;
+const EBIM_PROFILE = `GRUPO EBIM SAC (RUC 20602517986, San Isidro - Lima, Perú; presencia en Perú, Ecuador y Bolivia; ~11-50 personas; +7-10 años, ISO 9001:2015). Consultora de TI — IMPORTANTE sobre SAP: EBIM NACIÓ dando soporte SAP R/3 a nivel TÉCNICO (ABAP/BASIS) y FUNCIONAL (SD MM FI CO PP PM QM PS HR), y ese sigue siendo su fuerte principal — pero vía AMS (soporte y mejora continua a sistemas SAP ya implementados), Staffing (consultores dedicados) y Bolsa de Horas (paquetes de horas prepagadas), NO vía implementaciones greenfield/rollouts nuevos de SAP. Además es implementador de Odoo ERP (línea activa) y tiene foco fuerte en desarrollo de IA/agentes. Desarrolla y vende software propio como SaaS (no se cotiza en este estimador, es otro modelo de negocio): eSUPPLIER (portal de proveedores con IA), GMAO (mantenimiento/EAM), eExpense (portal de rendiciones y gastos). Servicios que SÍ se cotizan aquí: soporte/AMS/staffing/bolsa de horas SAP (técnico y funcional), implementación Odoo ERP, desarrollo de software web/móvil a medida, IA/agentes/chatbots, arquitectura cloud (AWS/Azure/GCP), BI/QLIK, IoT, outsourcing de personal TI, mesa de ayuda 24/7. Metodologías ágiles. Perfiles típicos: Arquitecto TI/Consultor Senior (funcional o técnico ABAP/BASIS), Consultor Semi-Senior, Analista de Procesos/Capacidades TI y PM/Coordinador.`;
+
+// Inteligencia de mercado curada por Lucho (Analista de Pricing) — referencia ESTABLE de competencia
+// PE/EC, para que "análisis de competencia" no dependa de un web_search distinto cada corrida (eso
+// era una fuente real de inconsistencia de precio). Actualizar cuando Lucho entregue un nuevo reporte.
+const MARKET_INTEL = `INTELIGENCIA DE MERCADO PE/EC (investigada por Lucho, Analista de Pricing EBIM — 2026-06-30, usar como referencia fija, NO la reinvestigues con web_search):
+- Soporte SAP técnico+funcional / AMS / Staffing / Bolsa de horas (NO implementaciones greenfield nuevas): competidores boutique Innoteam, Altamira Technology, Medialab LA, Sypsoft360 (PE+EC), Novis, Heinsohn Ecuador. EBIM nació en este nicho (SAP R/3 desde el origen) y compite ahí, no contra integradores globales (IBM/Accenture/NTT) que sí hacen implementaciones end-to-end.
+- Implementación Odoo ERP: en Perú, IT Grupo (líder, 30+ profesionales certificados), Ganemo, OZ Solutions, E&M Sistemas (localización SUNAT); en Ecuador, TresCloud (Gold Partner líder), IntiTecnología, NextGen (Odoo reporta 58 partners activos en Ecuador). Precios referenciales Perú: implementaciones básicas USD 900-3,000, proyectos medianos/grandes USD 10,000-50,000. Nota: EBIM tiene línea activa de implementación Odoo pero no figura en el listado oficial de partners de Odoo.com — verificar/formalizar ese status (dato para Dennis, no para el cliente).
+- IA aplicada/agentes: nicho activo pero NO saturado — boutique ALEF AI Solutions, Miss Yera Consulting, IAConsultor.pe, Automaxia, NEO Consulting. 34% de empresas peruanas ya usan IA/automatización, inversión proyectada 3.9x en 2026 (la más alta de LatAm). Sin líder consolidado — oportunidad real.
+- Hallazgo clave: NINGÚN competidor SAP/Odoo boutique investigado publica tarifas por hora — la opacidad de precios es la norma. El Estimador mismo (con números claros y rápidos) ya es un diferenciador de venta.
+- Diferenciador ganador recomendado por Lucho: la COMBINACIÓN soporte SAP técnico+funcional (AMS/staffing/bolsa de horas) + implementación Odoo + IA aplicada + productos SaaS propios con integración nativa a SAP/Oracle — ningún competidor listado combina las cuatro cosas (los Odoo partners no tocan SAP ni IA, las boutique de IA no tocan ERP, las consultoras SAP no venden SaaS propio).
+Usa esta base para "analisisCompetencia"; solo usa web_search para investigar al CLIENTE específico (perfilCliente), no para redescubrir el panorama competitivo general de PE/EC — eso ya está resuelto arriba y no debe variar entre corridas.`;
 
 // EBIM opera en Perú y Ecuador. Tarifas por país en USD/hora.
 // cost = costo real del consultor (cargado); sale = precio de venta competitivo de EBIM.
@@ -261,7 +272,7 @@ th{background:${BRAND.th};font-size:12px;text-transform:uppercase;letter-spacing
   <section class="highlight"><h2>★ Valor agregado y diferenciadores</h2><ul class="checklist">${valor}</ul></section>
   ${iaBlock}
   <section><h2>Por qué GRUPO EBIM</h2><p>${esc(prose.porQueEbim)}</p>
-    <div><span class="tag">SAP S/4HANA</span><span class="tag">Desarrollo a medida</span><span class="tag">Cloud AWS · Azure · GCP</span><span class="tag">Inteligencia Artificial</span><span class="tag">+7 años</span></div></section>
+    <div><span class="tag">Soporte y AMS SAP</span><span class="tag">Implementación Odoo ERP</span><span class="tag">Desarrollo a medida</span><span class="tag">Cloud AWS · Azure · GCP</span><span class="tag">Inteligencia Artificial</span><span class="tag">+7 años</span></div></section>
   <section><h2>Inversión</h2>
     <div class="invest"><div><div class="label">Inversión — llave en mano</div><small>No incluye IGV${hayRango ? " · rango según alcance final acordado" : ""}</small></div><div style="text-align:right">
       ${hayRango
@@ -409,11 +420,12 @@ export default function App() {
     const hist = history.slice(0, 10).map((h) => `- ${h.project || "(sin título)"} [${h.client}, ${COUNTRIES[h.country]?.name || h.country}] ${h.insight?.ia ? "· IA: " + h.insight.ia.slice(0, 80) : ""}`).join("\n") || "- (sin historial aún)";
     const sys = `Eres la parte operativo-comercial senior de tecnología de GRUPO EBIM: actúas como ESTRATEGA COMERCIAL que arma propuestas ganadoras, rentables y a la medida del mercado. EBIM opera en PERÚ y ECUADOR (todo en USD); enfócate en esos dos mercados. Conoces el negocio:
 ${EBIM_PROFILE}
+${MARKET_INTEL}
 Aprendes del historial de propuestas de EBIM (reutiliza patrones, perfiles, precios y valor agregado que funcionaron):
 ${hist}
 
 En CADA estimación SIEMPRE debes:
-1) Investigar al cliente (con web_search) y analizar la competencia local del país (Perú o Ecuador): quién compite, rango de precios típico y cómo diferenciarse para no competir solo por precio.
+1) Investigar al CLIENTE ESPECÍFICO con web_search (a qué se dedica, tamaño, contexto). El análisis de competencia general de Perú/Ecuador ya está resuelto en INTELIGENCIA DE MERCADO arriba — no lo vuelvas a investigar, solo aplícalo y adapta la mención de diferenciación al segmento real del cliente (SAP, Odoo, IA, o combinación).
 2) Recomendar valor agregado concreto que EBIM puede sumar (entregables o servicios extra que justifican el precio y abren cross-sell).
 3) Identificar dónde vender IA/automatización si aplica (copilotos, chatbots, automatización de procesos, analítica/BI, agentes); si no aplica, dilo.
 4) Dar una ESTRATEGIA DE CIERRE: cómo defender y posicionar el precio que resulte de TUS PROPIAS horas/entregables (nunca inventes ni menciones un monto distinto — no conoces el precio final exacto en USD porque lo calcula la app a partir de las horas que tú propongas; habla en términos relativos: "sostener el precio sin descuento salvo...", "enfatizar X para justificar el valor", no en cifras absolutas), qué enfatizar ante este cliente, y riesgos a cuidar.
