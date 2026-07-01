@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { system, messages, tools, max_tokens, model } = body;
+    const { system, messages, tools, max_tokens, model, temperature } = body;
     if (!messages) {
       return new Response(JSON.stringify({ error: "Falta 'messages'" }), {
         status: 400,
@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: model || "claude-sonnet-4-6",
         max_tokens: max_tokens || 1000,
+        temperature: temperature ?? 1,
         system,
         messages,
         ...(tools ? { tools } : {}),
