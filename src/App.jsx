@@ -1060,6 +1060,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           {/* Parámetros comerciales */}
           <div className="card">
             <h3>Parámetros comerciales (editables)</h3>
+            <div className="hint" style={{ marginBottom: 12 }}>Estos gastos NO se suman al precio del cliente — el precio ya es competitivo de mercado (horas × tarifa). Adm/Comercial/MKT se descuentan de tu margen interno; bajan tu utilidad/rentabilidad, no lo que le cobras al cliente.</div>
             <div className="row4">
               <div><label>Margen objetivo / piso (% s/ PV)</label><PctInput value={est.margin} onChange={(v) => up({ margin: v })} step={0.5} /></div>
               <div><label>Gastos administrativos</label><PctInput value={est.adm} onChange={(v) => up({ adm: v })} step={0.1} /></div>
