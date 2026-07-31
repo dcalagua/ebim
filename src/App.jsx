@@ -944,7 +944,9 @@ export default function App() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
-  const [attachments, setAttachments] = useState([]);
+  // Adjuntos por escenario: cada escenario puede tener sus propios documentos fuente (ej. BBP
+  // "Presencial" vs. acta "Remoto"), para que el análisis con IA use solo los de cada uno.
+  const [attachmentsByScenario, setAttachmentsByScenario] = useState({});
   const [parsing, setParsing] = useState(false);
   const [proposalLoading, setProposalLoading] = useState(false);
   const [proposalHTML, setProposalHTML] = useState("");
@@ -978,6 +980,8 @@ export default function App() {
   // literalmente el mismo número en USD es puro ruido — solo tiene sentido cuando difieren (ej. Perú/PEN).
   const hasLocalCurrency = country.cur !== "USD";
   const activeScenario = useMemo(() => est.scenarios.find((s) => s.id === est.activeScenarioId) || est.scenarios[0], [est.scenarios, est.activeScenarioId]);
+  // Adjuntos del escenario que está activo en el composer/pestañas (donde se suben los documentos).
+  const attachments = attachmentsByScenario[est.activeScenarioId] || [];
   const calc = useMemo(() => compute(est, activeScenario), [est, activeScenario]);
   // Un cálculo por escenario, para las pestañas de comparación y las exportaciones (Excel/Word).
   const scenarioCalcs = useMemo(() => est.scenarios.map((s) => ({ scenario: s, calc: compute(est, s) })), [est]);
@@ -1040,7 +1044,7 @@ export default function App() {
 
   function newEstimation() {
     setEst(defaultEstimation(est.country, newReqCode(history.map((h) => h.code))));
-    setAttachments([]);
+    setAttachmentsByScenario({});
     setAiError("");
     setChatMessages([]);
     flash("Nueva estimación iniciada");
@@ -1051,14 +1055,15 @@ export default function App() {
     if (!est.client.trim()) { flash("Falta el nombre del cliente"); return; }
     const savedAt = Date.now();
     const totals = scenarioCalcs.map(({ scenario, calc: c }) => ({ name: scenario.name, PVfinal: c.PVfinal, rent: c.rent }));
-    const payload = { ...est, savedAt, expiresAt: savedAt + (est.validDays || 30) * 86400000, attachmentNames: attachments.filter((a) => a.kind !== "error").map((a) => a.name), totals };
+    const attachmentNames = [...new Set(Object.values(attachmentsByScenario).flat().filter((a) => a.kind !== "error").map((a) => a.name))];
+    const payload = { ...est, savedAt, expiresAt: savedAt + (est.validDays || 30) * 86400000, attachmentNames, totals };
     await store.set("est:" + est.code, JSON.stringify(payload));
     await refreshHistory();
     flash("Guardado " + est.code);
   }
 
   function loadEstimation(item) {
-    setEst(normalizeEstimation({ ...item })); setAttachments([]); setShowHistory(false); setChatMessages([]);
+    setEst(normalizeEstimation({ ...item })); setAttachmentsByScenario({}); setShowHistory(false); setChatMessages([]);
     flash("Cargada " + item.code);
   }
 
@@ -1158,18 +1163,53 @@ export default function App() {
         out.push({ id: crypto.randomUUID(), name: f.name, kind: "error", text: "No se pudo leer (" + (err?.message || "error") + ")" });
       }
     }
-    setAttachments((a) => [...a, ...out]);
+    const sid = est.activeScenarioId;
+    setAttachmentsByScenario((m) => ({ ...m, [sid]: [...(m[sid] || []), ...out] }));
     setParsing(false);
-    flash(out.length + " documento(s) adjuntado(s)");
+    flash(out.length + " documento(s) adjuntado(s)" + (est.scenarios.length > 1 ? ` a "${activeScenario.name}"` : ""));
   }
 
-  const removeAttachment = (id) => setAttachments((a) => a.filter((x) => x.id !== id));
+  const removeAttachment = (id) => {
+    const sid = est.activeScenarioId;
+    setAttachmentsByScenario((m) => ({ ...m, [sid]: (m[sid] || []).filter((x) => x.id !== id) }));
+  };
 
   /* ---------- IA: generar borrador ---------- */
+  // Convierte un escenario devuelto por la IA (forma "sc" del JSON) a la forma que usa la app,
+  // sin asignarle id — cada llamador decide si es un escenario nuevo o si reemplaza uno existente.
+  function scenarioFromAI(sc, fallbackName) {
+    let acc = 0;
+    const team = (sc.equipo || []).map((t) => ({ id: crypto.randomUUID(), perfil: t.perfil, tier: ["senior", "semi", "analista"].includes(t.tier) ? t.tier : "semi", rol: t.rol || "" }));
+    return {
+      name: sc.nombre || fallbackName,
+      team,
+      deliverables: (sc.entregables || []).map((d) => {
+        const dur = Math.max(1, Math.round(+d.semanas || 1));
+        const horasArr = Array.isArray(d.horas) ? d.horas : [];
+        const hours = {};
+        team.forEach((t, idx) => { hours[t.id] = +horasArr[idx] || 0; });
+        const item = { id: crypto.randomUUID(), name: d.nombre, hours, start: acc, dur };
+        acc += dur;
+        return item;
+      }),
+      schedule: (sc.cronograma && sc.cronograma.length ? sc.cronograma : defaultSchedule().map((s) => ({ hito: s.hito, pct: s.pct }))).map((s) => ({ id: crypto.randomUUID(), hito: s.hito, pct: +s.pct || 0 })),
+      discount: 0,
+      reasoning: sc.razonPrecio || "",
+    };
+  }
+
   async function generateDraft() {
-    const usable = attachments.filter((a) => a.kind !== "error");
-    if (!est.context.trim() && usable.length === 0) { setAiError("Pega el contexto o adjunta al menos un documento (BBP, acta, transcripción…)."); return; }
-    const instructionText = est.context.trim() || `Analiza ${usable.length} documento(s) adjunto(s).`;
+    // Adjuntos propios de cada escenario (no globales): si 2+ escenarios tienen sus propios
+    // documentos, se analiza cada uno POR SEPARADO en la misma llamada ("modo multi-escenario").
+    const attForScenario = (id) => (attachmentsByScenario[id] || []).filter((a) => a.kind !== "error");
+    const allUsable = Object.values(attachmentsByScenario).flat().filter((a) => a.kind !== "error");
+    if (!est.context.trim() && allUsable.length === 0) { setAiError("Pega el contexto o adjunta al menos un documento (BBP, acta, transcripción…)."); return; }
+    const scenariosWithDocs = est.scenarios.filter((s) => attForScenario(s.id).length > 0);
+    const perScenarioMode = scenariosWithDocs.length >= 2;
+
+    const instructionText = est.context.trim() || (perScenarioMode
+      ? `Analiza documentos por separado para ${scenariosWithDocs.length} escenarios (${scenariosWithDocs.map((s) => s.name).join(", ")}).`
+      : `Analiza ${allUsable.length} documento(s) adjunto(s).`);
     setChatMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: instructionText, ts: Date.now() }]);
     setAiLoading(true); setAiError("");
     const c = COUNTRIES[est.country];
@@ -1200,34 +1240,71 @@ CALIBRACIÓN DE HORAS POR TIPO DE TRABAJO (crítico — sesgo conocido a corregi
 - Entregables de FEATURES NUEVAS bien acotadas (UI, lógica de negocio estándar, reportes) no necesitan colchón — ahí las estimaciones "limpias" suelen ser razonables.
 AISLAMIENTO DE web_search (crítico para estabilidad de precio): equipo, entregables, horas por integrante y semanas se derivan ÚNICA Y EXCLUSIVAMENTE del CONTEXTO y los DOCUMENTOS ADJUNTOS — nunca de lo que encuentres con web_search ni de tu conocimiento general de "proyectos similares". web_search es solo para enriquecer perfilCliente, analisisCompetencia y oportunidadIA (texto cualitativo); sus resultados varían entre corridas por naturaleza, así que si dejas que influyan en el dimensionamiento del alcance, el precio final deja de ser estable. Primero fija el alcance y las horas leyendo solo los documentos; después, sin tocar esas horas, usa web_search para el análisis de mercado.
 PRECISIÓN NUMÉRICA (crítico): antes de estimar horas, releé los documentos y extrae en "hechosClave" las cifras EXACTAS que mencionan (cantidad de SKUs/usuarios/sedes/registros, plazos, etc.), copiándolas TAL CUAL aparecen en el texto — nunca las redondees, aproximes ni cambies de una corrida a otra (si el documento dice "15,000 SKUs", es 15,000, no 20,000 ni 45,000). Basa las horas en esas cifras extraídas, no en una impresión general del tamaño del proyecto. Un error de cifra aquí es la causa más común de que el precio final salte entre corridas.`;
-    const hasContent = est.scenarios.some((s) => s.team.some((t) => t.perfil) || s.deliverables.some((d) => d.name));
-    const currentProposal = hasContent
-      ? `\n\nPROPUESTA ACTUAL (aplica sobre esta base las modificaciones pedidas; conserva lo no afectado):\n${JSON.stringify({
-          escenarios: est.scenarios.map((s) => ({
-            nombre: s.name,
-            equipo: s.team.map((t) => ({ perfil: t.perfil, tier: t.tier, rol: t.rol })),
-            entregables: s.deliverables.map((d) => ({ nombre: d.name, horas: s.team.map((t) => (d.hours || {})[t.id] || 0), semanas: d.dur })),
-          })),
-        })}`
-      : "";
-    const usr = `País sugerido: ${c.name}. Tarifas EBIM en USD/h — Senior (costo ${c.rates.senior.cost} / venta ${c.rates.senior.sale}), Semi (costo ${c.rates.semi.cost} / venta ${c.rates.semi.sale}), Analista (costo ${c.rates.analista.cost} / venta ${c.rates.analista.sale}).
+    const sysFinal = perScenarioMode
+      ? sys + `\n\nMODO MULTI-ESCENARIO CON DOCUMENTOS SEPARADOS (anula el punto 5 de arriba para esta corrida): el mensaje del usuario trae ${scenariosWithDocs.length} bloques "===== ESCENARIO: <nombre> =====", cada uno con sus propios documentos. Devuelve EXACTAMENTE un elemento en "escenarios" por bloque, EN EL MISMO ORDEN, con "nombre" igual al del bloque, derivando equipo/entregables/horas/cronograma/razonPrecio de cada uno ÚNICA Y EXCLUSIVAMENTE de los documentos de SU PROPIO bloque — nunca mezcles información entre bloques.`
+      : sys;
+
+    // Prompt de usuario: si hay documentos separados por escenario, se segmenta en bloques
+    // "===== ESCENARIO: nombre =====" (uno por escenario con adjuntos propios); si no, es el
+    // flujo compartido de siempre (un solo set de documentos para toda la propuesta).
+    let content;
+    if (perScenarioMode) {
+      const header = `País sugerido: ${c.name}. Tarifas EBIM en USD/h — Senior (costo ${c.rates.senior.cost} / venta ${c.rates.senior.sale}), Semi (costo ${c.rates.semi.cost} / venta ${c.rates.semi.sale}), Analista (costo ${c.rates.analista.cost} / venta ${c.rates.analista.sale}).
+CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM, aplica a todos los escenarios abajo):\n${est.context || "(ver documentos de cada escenario)"}`;
+      const blocks = [{ type: "text", text: header }];
+      scenariosWithDocs.forEach((s) => {
+        const docs = attForScenario(s.id);
+        const textDocs = docs.filter((a) => a.kind === "text" || a.kind === "docx");
+        const mediaDocs = docs.filter((a) => a.kind === "pdf" || a.kind === "image");
+        const hasSceneContent = s.team.some((t) => t.perfil) || s.deliverables.some((d) => d.name);
+        const currentProposal = hasSceneContent
+          ? `\nPROPUESTA ACTUAL DE ESTE ESCENARIO (aplica las instrucciones compartidas sobre esta base; conserva lo no afectado):\n${JSON.stringify({
+              equipo: s.team.map((t) => ({ perfil: t.perfil, tier: t.tier, rol: t.rol })),
+              entregables: s.deliverables.map((d) => ({ nombre: d.name, horas: s.team.map((t) => (d.hours || {})[t.id] || 0), semanas: d.dur })),
+            })}`
+          : "";
+        let block = `\n\n===== ESCENARIO: ${s.name} =====${currentProposal}`;
+        if (textDocs.length) {
+          block += "\n\n----- DOCUMENTOS -----\n" + textDocs.map((a) => `\n--- ${a.name} ---\n${a.text}`).join("\n");
+        }
+        blocks.push({ type: "text", text: block });
+        mediaDocs.forEach((a) => {
+          blocks.push(a.kind === "pdf"
+            ? { type: "document", source: { type: "base64", media_type: a.mediaType, data: a.base64 } }
+            : { type: "image", source: { type: "base64", media_type: a.mediaType, data: a.base64 } });
+        });
+      });
+      content = blocks;
+    } else {
+      const hasContent = est.scenarios.some((s) => s.team.some((t) => t.perfil) || s.deliverables.some((d) => d.name));
+      const currentProposal = hasContent
+        ? `\n\nPROPUESTA ACTUAL (aplica sobre esta base las modificaciones pedidas; conserva lo no afectado):\n${JSON.stringify({
+            escenarios: est.scenarios.map((s) => ({
+              nombre: s.name,
+              equipo: s.team.map((t) => ({ perfil: t.perfil, tier: t.tier, rol: t.rol })),
+              entregables: s.deliverables.map((d) => ({ nombre: d.name, horas: s.team.map((t) => (d.hours || {})[t.id] || 0), semanas: d.dur })),
+            })),
+          })}`
+        : "";
+      const usr = `País sugerido: ${c.name}. Tarifas EBIM en USD/h — Senior (costo ${c.rates.senior.cost} / venta ${c.rates.senior.sale}), Semi (costo ${c.rates.semi.cost} / venta ${c.rates.semi.sale}), Analista (costo ${c.rates.analista.cost} / venta ${c.rates.analista.sale}).
 CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos adjuntos)"}${currentProposal}`;
 
-    // Texto de los documentos legibles (BBP en Word, transcripciones, actas, CSV…)
-    const textDocs = usable.filter((a) => a.kind === "text" || a.kind === "docx");
-    let docsText = "";
-    if (textDocs.length) {
-      docsText = "\n\n===== DOCUMENTOS ADJUNTOS =====\n" +
-        textDocs.map((a) => `\n----- ${a.name} -----\n${a.text}`).join("\n");
-    }
-    // PDFs e imágenes se envían como bloques nativos para que la IA los lea
-    const mediaBlocks = usable
-      .filter((a) => a.kind === "pdf" || a.kind === "image")
-      .map((a) => a.kind === "pdf"
-        ? { type: "document", source: { type: "base64", media_type: a.mediaType, data: a.base64 } }
-        : { type: "image", source: { type: "base64", media_type: a.mediaType, data: a.base64 } });
+      // Texto de los documentos legibles (BBP en Word, transcripciones, actas, CSV…)
+      const textDocs = allUsable.filter((a) => a.kind === "text" || a.kind === "docx");
+      let docsText = "";
+      if (textDocs.length) {
+        docsText = "\n\n===== DOCUMENTOS ADJUNTOS =====\n" +
+          textDocs.map((a) => `\n----- ${a.name} -----\n${a.text}`).join("\n");
+      }
+      // PDFs e imágenes se envían como bloques nativos para que la IA los lea
+      const mediaBlocks = allUsable
+        .filter((a) => a.kind === "pdf" || a.kind === "image")
+        .map((a) => a.kind === "pdf"
+          ? { type: "document", source: { type: "base64", media_type: a.mediaType, data: a.base64 } }
+          : { type: "image", source: { type: "base64", media_type: a.mediaType, data: a.base64 } });
 
-    const content = [{ type: "text", text: usr + docsText }, ...mediaBlocks];
+      content = [{ type: "text", text: usr + docsText }, ...mediaBlocks];
+    }
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke("claude-proxy", {
@@ -1235,7 +1312,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           model: "claude-sonnet-4-6",
           max_tokens: 8000,
           temperature: 0.1,
-          system: sys,
+          system: sysFinal,
           messages: [{ role: "user", content }],
           tools: [{ type: "web_search_20250305", name: "web_search" }],
         },
@@ -1247,31 +1324,30 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
       const parsed = JSON.parse(clean.slice(start, end + 1));
       const detKey = resolveCountryKey(parsed.pais);
       const cc = COUNTRIES[detKey] || country;
-      const rawScenarios = Array.isArray(parsed.escenarios) && parsed.escenarios.length ? parsed.escenarios.slice(0, MAX_SCENARIOS) : [{}];
-      const scenarios = rawScenarios.map((sc, i) => {
-        let acc = 0;
-        const team = (sc.equipo || []).map((t) => ({ id: crypto.randomUUID(), perfil: t.perfil, tier: ["senior", "semi", "analista"].includes(t.tier) ? t.tier : "semi", rol: t.rol || "" }));
-        return {
-          id: crypto.randomUUID(),
-          name: sc.nombre || `Escenario ${i + 1}`,
-          team,
-          deliverables: (sc.entregables || []).map((d) => {
-            const dur = Math.max(1, Math.round(+d.semanas || 1));
-            const horasArr = Array.isArray(d.horas) ? d.horas : [];
-            const hours = {};
-            team.forEach((t, idx) => { hours[t.id] = +horasArr[idx] || 0; });
-            const item = { id: crypto.randomUUID(), name: d.nombre, hours, start: acc, dur };
-            acc += dur;
-            return item;
-          }),
-          schedule: (sc.cronograma && sc.cronograma.length ? sc.cronograma : defaultSchedule().map((s) => ({ hito: s.hito, pct: s.pct }))).map((s) => ({ id: crypto.randomUUID(), hito: s.hito, pct: +s.pct || 0 })),
-          discount: 0,
-          reasoning: sc.razonPrecio || "",
-        };
-      });
       const ratesForCalc = detKey ? cloneRates(cc.rates) : est.rates;
       const estForCalc = { ...est, rates: ratesForCalc };
-      const priceSummary = scenarios.map((sc) => `${sc.name}: ${fmtUSD(compute(estForCalc, sc).PVfinal)}`).join(" · ");
+      const paisNombre = COUNTRIES[detKey]?.name || parsed.pais || "no identificado";
+
+      let newScenarios, priceSummary, confirmText;
+      if (perScenarioMode) {
+        // Un resultado de la IA por bloque enviado, EN EL MISMO ORDEN — se reemplaza solo el
+        // contenido de esos escenarios (conservando su id), los demás quedan intactos.
+        const rawScenarios = Array.isArray(parsed.escenarios) ? parsed.escenarios : [];
+        const updatedById = {};
+        scenariosWithDocs.forEach((orig, i) => {
+          updatedById[orig.id] = { ...scenarioFromAI(rawScenarios[i] || {}, orig.name), id: orig.id };
+        });
+        newScenarios = est.scenarios.map((s) => updatedById[s.id] || s);
+        priceSummary = scenariosWithDocs.map((orig) => `${updatedById[orig.id].name}: ${fmtUSD(compute(estForCalc, updatedById[orig.id]).PVfinal)}`).join(" · ");
+        const skipped = est.scenarios.length - scenariosWithDocs.length;
+        confirmText = `Detecté: ${parsed.tipoProyecto || "servicio"} para ${parsed.cliente || "cliente no identificado"} (${paisNombre}). Analicé documentos por separado para ${scenariosWithDocs.length} escenario${scenariosWithDocs.length > 1 ? "s" : ""} — ${priceSummary}.${skipped > 0 ? ` ${skipped} escenario${skipped > 1 ? "s" : ""} sin documentos nuevos ${skipped > 1 ? "quedaron" : "quedó"} sin cambios.` : ""} Revisa el equipo, los entregables y ajusta lo que haga falta.`;
+      } else {
+        const rawScenarios = Array.isArray(parsed.escenarios) && parsed.escenarios.length ? parsed.escenarios.slice(0, MAX_SCENARIOS) : [{}];
+        newScenarios = rawScenarios.map((sc, i) => ({ ...scenarioFromAI(sc, `Escenario ${i + 1}`), id: crypto.randomUUID() }));
+        priceSummary = newScenarios.map((sc) => `${sc.name}: ${fmtUSD(compute(estForCalc, sc).PVfinal)}`).join(" · ");
+        confirmText = `Detecté: ${parsed.tipoProyecto || "servicio"} para ${parsed.cliente || "cliente no identificado"} (${paisNombre}). Generé ${newScenarios.length} escenario${newScenarios.length > 1 ? "s" : ""} — ${priceSummary}. Revisa el equipo, los entregables y ajusta lo que haga falta.`;
+      }
+
       setEst((e) => ({
         ...e,
         client: e.client || parsed.cliente || "",
@@ -1280,8 +1356,8 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         rates: detKey ? cloneRates(cc.rates) : e.rates,
         project: e.project || parsed.tipoProyecto || "",
         context: "",
-        scenarios,
-        activeScenarioId: scenarios[0].id,
+        scenarios: newScenarios,
+        activeScenarioId: perScenarioMode ? e.activeScenarioId : newScenarios[0].id,
         insight: {
           resumenRequerimiento: parsed.resumenRequerimiento || "",
           perfilCliente: parsed.perfilCliente || "",
@@ -1292,8 +1368,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
           hechosClave: Array.isArray(parsed.hechosClave) ? parsed.hechosClave : [],
         },
       }));
-      const paisNombre = COUNTRIES[detKey]?.name || parsed.pais || "no identificado";
-      setChatMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", text: `Detecté: ${parsed.tipoProyecto || "servicio"} para ${parsed.cliente || "cliente no identificado"} (${paisNombre}). Generé ${scenarios.length} escenario${scenarios.length > 1 ? "s" : ""} — ${priceSummary}. Revisa el equipo, los entregables y ajusta lo que haga falta.`, ts: Date.now() }]);
+      setChatMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", text: confirmText, ts: Date.now() }]);
       flash("Detectado y generado — revisa la propuesta");
     } catch (err) {
       const msg = "No se pudo generar el borrador automáticamente. Puedes cargar los entregables manualmente. (" + (err?.message || "error") + ")";
@@ -1435,6 +1510,9 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
         .scenario-tab input{border:none;background:transparent;padding:0;width:auto;max-width:140px;font-weight:600;font-size:13px;color:var(--ink);}
         .scenario-tab .sc-price{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap;}
         .scenario-tab.active .sc-price{color:var(--accent);}
+        .scenario-pick-btn{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 11px;cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted);}
+        .scenario-pick-btn:hover{border-color:var(--accent);color:var(--accent);}
+        .scenario-pick-btn.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
         .reasoning-box{margin-top:12px;font-size:13.5px;line-height:1.55;background:var(--accent-soft);border-radius:8px;padding:10px 12px;color:var(--ink);}
         .section-label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:10px 0 -8px 2px;scroll-margin-top:64px;}
         .section-label:first-child{margin-top:0;}
@@ -1904,10 +1982,30 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files); }}
             >
+              {est.scenarios.length > 1 && (
+                <>
+                  <label>Documentos para el escenario</label>
+                  <div className="scenario-tabs" style={{ marginBottom: 10 }}>
+                    {est.scenarios.map((s) => {
+                      const n = (attachmentsByScenario[s.id] || []).filter((a) => a.kind !== "error").length;
+                      return (
+                        <button type="button" key={s.id} className={"scenario-pick-btn" + (s.id === est.activeScenarioId ? " active" : "")}
+                          onClick={() => up({ activeScenarioId: s.id })}>
+                          {s.name}{n > 0 ? ` · ${n} doc.` : ""}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
               <label>Tu prompt / instrucciones</label>
               <textarea value={est.context} onChange={(e) => up({ context: e.target.value })}
                 placeholder="Escribe aquí como si hablaras conmigo: 'estima este BBP', 'agrega capacitación', 'dame una opción presencial y otra remota de 1 semana'… Adjunta documentos con el clip y pulsa Enviar." />
-              <div className="hint" style={{ marginTop: 6 }}>Cada envío aplica tus instrucciones sobre la propuesta actual (si ya existe) en lugar de empezar de cero. Arrastra archivos aquí o usa el clip para adjuntar.</div>
+              <div className="hint" style={{ marginTop: 6 }}>
+                {est.scenarios.length > 1
+                  ? `Cada envío aplica tus instrucciones sobre la propuesta actual en lugar de empezar de cero. Arrastra archivos aquí o usa el clip para adjuntarlos al escenario seleccionado arriba ("${activeScenario.name}") — si adjuntas documentos propios a 2 o más escenarios, se analizan por separado y obtienes resultados por cada uno al enviar.`
+                  : `Cada envío aplica tus instrucciones sobre la propuesta actual (si ya existe) en lugar de empezar de cero. Arrastra archivos aquí o usa el clip para adjuntar.`}
+              </div>
               {parsing && <div className="hint" style={{ marginTop: 6 }}><Loader2 size={12} className="spin" style={{ display: "inline", verticalAlign: "-2px" }} /> Procesando documentos…</div>}
 
               {attachments.length > 0 && (
