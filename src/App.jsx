@@ -22,9 +22,9 @@ import ebimLogoCompleto from "./assets/brand/ebim-logo-completo.png";
 const EBIM_PROFILE = `GRUPO EBIM SAC (RUC 20602517986, San Isidro - Lima, Perú; presencia en Perú, Ecuador y Bolivia; ~11-50 personas; +7-10 años, ISO 9001:2015). Consultora de TI — IMPORTANTE sobre SAP: EBIM NACIÓ dando soporte SAP R/3 a nivel TÉCNICO (ABAP/BASIS) y FUNCIONAL (SD MM FI CO PP PM QM PS HR), y ese sigue siendo su fuerte principal — pero vía AMS (soporte y mejora continua a sistemas SAP ya implementados), Staffing (consultores dedicados) y Bolsa de Horas (paquetes de horas prepagadas), NO vía implementaciones greenfield/rollouts nuevos de SAP. Además es implementador de Odoo ERP (línea activa) y tiene foco fuerte en desarrollo de IA/agentes. Desarrolla y vende software propio como SaaS (no se cotiza en este estimador, es otro modelo de negocio): eSUPPLIER (portal de proveedores con IA), GMAO (mantenimiento/EAM), eExpense (portal de rendiciones y gastos). Servicios que SÍ se cotizan aquí: soporte/AMS/staffing/bolsa de horas SAP (técnico y funcional), implementación Odoo ERP, desarrollo de software web/móvil a medida, IA/agentes/chatbots, arquitectura cloud (AWS/Azure/GCP), BI/QLIK, IoT, outsourcing de personal TI, mesa de ayuda 24/7. Metodologías ágiles. Perfiles típicos: Arquitecto TI/Consultor Senior (funcional o técnico ABAP/BASIS), Consultor Semi-Senior, Analista de Procesos/Capacidades TI y PM/Coordinador.`;
 
 // Inteligencia de mercado curada por Lucho (Analista de Pricing) — referencia ESTABLE de competencia
-// PE/EC, para que "análisis de competencia" no dependa de un web_search distinto cada corrida (eso
+// PE/EC/BO, para que "análisis de competencia" no dependa de un web_search distinto cada corrida (eso
 // era una fuente real de inconsistencia de precio). Actualizar cuando Lucho entregue un nuevo reporte.
-const MARKET_INTEL = `INTELIGENCIA DE MERCADO PE/EC (investigada por Lucho, Analista de Pricing EBIM — 2026-06-30, usar como referencia fija, NO la reinvestigues con web_search):
+const MARKET_INTEL = `INTELIGENCIA DE MERCADO PE/EC/BO (investigada por Lucho, Analista de Pricing EBIM — 2026-06-30 para PE/EC, 2026-08 para BO; usar como referencia fija, NO la reinvestigues con web_search):
 
 PERÚ:
 - Soporte SAP técnico+funcional / AMS / Staffing / Bolsa de horas (NO implementaciones nuevas): competidores confirmados por EBIM (conocimiento directo de mercado, no solo búsqueda) — CSTI Corp (17 años, SAP Gold Partner, ~150 consultores, fuerte en staffing/outsourcing/support/projects, PE+EC+CO+CR+US), Omnia Solution (SAP Gold Partner, 25 años, adquirida por EPI-USE/GroupElephant — ahora respaldada por un grupo global, ojo con esto), AYESA (SAP Gold Partner, Centro de Excelencia SAP de 750 profesionales, proyectos grandes como Enel/Cálidda — jugador GRANDE, no boutique), Gestión y Sistemas, Innoteam, Altamira Technology, Medialab LA, Novis. EBIM nació en este nicho (SAP R/3 desde el origen) y compite ahí, no contra integradores globales tipo IBM/Accenture/NTT — aunque AYESA y Omnia (ya con EPI-USE) empiezan a jugar en esa escala mayor, hay que diferenciarse por agilidad/cercanía frente a ellos, no por tamaño.
@@ -37,12 +37,20 @@ ECUADOR:
 - IA aplicada/agentes: ecosistema boutique real — Zetri (Guayaquil), Baigency, Innovación IA, ToGrow, Vex AI, Agencia IA. ~40% de empresas ecuatorianas proyectadas con IA incorporada a fin de 2025; 87% de profesionales ya usa IA en el trabajo; solo 12-18% tiene gobierno de IA formal; sectores líderes banca/retail/agroindustria.
 - Presencia de EBIM en Ecuador: CONFIRMADA y real (no es atención remota desde Lima) — sitio dedicado grupoebim.com/ec/, vacantes activas en Guayaquil, operación en Guayaquil/Quito/Cuenca/Manta. El discurso de "equipo local en Ecuador" es defendible.
 
+BOLIVIA:
+- Soporte SAP / AMS / implementación: **Actualisap Consultores Bolivia S.A. es el competidor SAP principal confirmado** — SAP Gold Partner, líder nacional en soporte, vende el paquete "AcelerIA" (S/4HANA Cloud Public Edition con IA nativa Joule). También activo **Datec** (Santa Cruz, d'INNOVA), que lanzó "Grow Fast" combinando SAP Cloud ERP con su propia IA ("Lucy") — ambos ya empujan IA embebida como diferenciador, EBIM debe igualar ese discurso o superarlo con agentes propios. Mercado mucho menos saturado que Perú/Ecuador: pocos jugadores boutique confirmados, ventana de oportunidad real para entrar agresivo.
+- Odoo ERP: **Poiesis Consulting es el único Gold Partner de Bolivia** (28 referencias, proyectos de hasta ~1,100 usuarios) — el líder claro a superar. Le siguen Silver: APPEX, BELRO Ltda. Hay ~20 partners oficiales en total, la mayoría tier "Ready" (boutiques chicas, poca escala) — mercado fragmentado y con espacio para un jugador combinado SAP+Odoo+IA como EBIM.
+- IA aplicada/agentes: Bolivia va MUY REZAGADA — último lugar (18/19) del Índice Latinoamericano de IA (ILIA) de CEPAL 2025. Sin estrategia nacional de IA consolidada; recién en octubre 2025 se aprobó en el Senado un proyecto de ley de IA (crea la agencia ARIA). Esto es una OPORTUNIDAD, no una limitante: casi no hay competencia boutique de IA establecida todavía (a diferencia de PE/EC donde ya hay varios players) — quien entre primero con oferta de agentes/automatización se lleva la categoría.
+- Economía y riesgo cambiario (crítico para pricing): Bolivia atraviesa una crisis de escasez de dólares desde 2023. El tipo de cambio oficial estuvo fijo en Bs 6.96/USD por más de una década, pero tras la unificación cambiaria de 2026 el BCB pasó a publicar un valor referencial que ya converge con el paralelo, ambos ~Bs 11.9-12.1/USD (agosto 2026). Sigue siendo volátil — el campo T.C. de Bolivia en el Estimador debe revisarse/ajustarse en cada cotización, no asumir un valor fijo.
+- Costo de talento: sueldos de ingeniería/TI en Bolivia corren por debajo de Perú y Ecuador en términos USD (agravado por la crisis cambiaria) — eso permite a EBIM ofrecer tarifas de venta más bajas que en Perú manteniendo márgenes sanos, la base del pricing agresivo para ganar mercado.
+- Presencia de EBIM en Bolivia: mercado NUEVO — sin base instalada de clientes ni oficina local confirmada aún (a diferencia de Ecuador, donde sí hay presencia real). El discurso de venta debe apoyarse en la trayectoria regional de EBIM (Perú + Ecuador, SAP desde el origen) y en la agilidad de un jugador boutique frente a partners locales chicos y fragmentados, no en "ya tenemos equipo en Bolivia".
+
 GENERAL:
 - Hallazgo clave: NINGÚN competidor SAP/Odoo boutique investigado publica tarifas por hora — la opacidad de precios es la norma. El Estimador mismo (con números claros y rápidos) ya es un diferenciador de venta.
 - Diferenciador ganador: la COMBINACIÓN soporte SAP técnico+funcional (AMS/staffing/bolsa de horas) + implementación Odoo + IA aplicada + productos SaaS propios con integración nativa a SAP/Oracle — ningún competidor listado combina las cuatro cosas.
-Usa esta base para "analisisCompetencia" según el país del cliente; solo usa web_search para investigar al CLIENTE específico (perfilCliente), no para redescubrir el panorama competitivo general de PE/EC — eso ya está resuelto arriba y no debe variar entre corridas.`;
+Usa esta base para "analisisCompetencia" según el país del cliente; solo usa web_search para investigar al CLIENTE específico (perfilCliente), no para redescubrir el panorama competitivo general de PE/EC/BO — eso ya está resuelto arriba y no debe variar entre corridas.`;
 
-// EBIM opera en Perú y Ecuador. Tarifas por país en USD/hora.
+// EBIM opera en Perú, Ecuador y Bolivia. Tarifas por país en USD/hora.
 // cost = costo real del consultor (cargado); sale = precio de venta competitivo de EBIM.
 // minRent = rentabilidad neta mínima aceptable; maxDesc = descuento competitivo máx.
 const COUNTRIES = {
@@ -50,6 +58,8 @@ const COUNTRIES = {
         rates: { senior: { cost: 26, sale: 62.5 }, semi: { cost: 17, sale: 41.67 }, analista: { cost: 11, sale: 25 } } },
   EC: { name: "Ecuador", flag: "🇪🇨", flagBg: "linear-gradient(180deg,#FFDD00 0 50%,#034EA2 50% 75%,#EF3340 75% 100%)", emblem: true, cur: "USD", fx: 1, minRent: 0.25, maxDesc: 0.05, note: "Economía dolarizada: precios en USD directos, sin riesgo cambiario. Menos competencia SAP local que Perú — política más exigente (piso de rentabilidad más alto, menos margen de descuento) para capturar esa ventaja.",
         rates: { senior: { cost: 24, sale: 58 }, semi: { cost: 16, sale: 38 }, analista: { cost: 10, sale: 23 } } },
+  BO: { name: "Bolivia", flag: "🇧🇴", flagBg: "linear-gradient(180deg,#D52B1E 0 33.34%,#F9E300 33.34% 66.66%,#007934 66.66% 100%)", cur: "BOB", fx: 12, minRent: 0.22, maxDesc: 0.12, note: "Mercado nuevo para EBIM, en expansión. Crisis cambiaria activa (T.C. oficial y paralelo se unificaron ~12 BOB/USD a mediados de 2026, pero es volátil — revisa y ajusta el T.C. seguido). Baja madurez de adopción de IA/SAP frente a Perú y Ecuador (Bolivia último lugar del ranking CEPAL de IA en LatAm) = poca competencia madura todavía. Tarifas de venta agresivas para ganar mercado antes que la competencia se consolide.",
+        rates: { senior: { cost: 22, sale: 55 }, semi: { cost: 14, sale: 35 }, analista: { cost: 9, sale: 23 } } },
 };
 
 // Ícono de bandera dibujado con CSS (evita depender de la fuente de emoji de banderas, ausente en Windows nativo).
@@ -76,8 +86,8 @@ const BRAND = {
   th: "#F4F8F9",
 };
 
-// Resuelve el país detectado por la IA a una clave válida (solo Perú/Ecuador)
-const COUNTRY_ALIASES = { PERU: "PE", "PERÚ": "PE", ECUADOR: "EC" };
+// Resuelve el país detectado por la IA a una clave válida (Perú/Ecuador/Bolivia)
+const COUNTRY_ALIASES = { PERU: "PE", "PERÚ": "PE", ECUADOR: "EC", BOLIVIA: "BO" };
 function resolveCountryKey(val) {
   if (!val) return null;
   const v = String(val).trim().toUpperCase();
@@ -107,9 +117,15 @@ function arrayBufferToBase64(buf) {
   return btoa(binary);
 }
 
-// Correlativo desde 1 (no aleatorio): el próximo número es la cantidad de cotizaciones existentes + 1.
+// Correlativo desde 1 (no aleatorio): el próximo número es el mayor REQ-###### ya usado + 1 (no la
+// cantidad de cotizaciones existentes — eso rompía si se borraba alguna, o si "existing" venía vacío
+// antes de que el historial real terminara de cargar desde Supabase).
 const newReqCode = (existing = []) => {
-  let n = existing.length + 1;
+  const maxNum = existing.reduce((max, code) => {
+    const m = /^REQ-(\d+)$/.exec(code || "");
+    return m ? Math.max(max, parseInt(m[1], 10)) : max;
+  }, 0);
+  let n = maxNum + 1;
   let c = "REQ-" + String(n).padStart(6, "0");
   while (existing.includes(c)) { n++; c = "REQ-" + String(n).padStart(6, "0"); }
   return c;
@@ -355,7 +371,7 @@ function defaultProse(est) {
     entendimiento: `${est.client || "Su organización"} requiere ${est.project || "un servicio de consultoría de TI"}. En GRUPO EBIM entendemos su impacto en la operación y proponemos un enfoque orientado a resultados medibles.`,
     enfoque: `Trabajamos con metodologías ágiles y un equipo especializado, con entregables claros en cada fase y acompañamiento continuo hasta la adopción.`,
     diferenciadores: (est.insight?.valor?.length ? est.insight.valor : ["Equipo certificado con más de 7 años de experiencia", "Entregables accionables, no solo diagnósticos", "Acompañamiento real en la adopción"]),
-    porQueEbim: `Con más de 7 años y presencia en Perú y Ecuador, GRUPO EBIM combina experiencia en SAP, desarrollo a medida, cloud e inteligencia artificial para entregar soluciones que generan valor real.`,
+    porQueEbim: `Con más de 7 años y presencia en Perú, Ecuador y Bolivia, GRUPO EBIM combina experiencia en SAP, desarrollo a medida, cloud e inteligencia artificial para entregar soluciones que generan valor real.`,
     cierre: `Quedamos atentos para iniciar a la brevedad y convertirnos en su aliado estratégico de tecnología.`,
   };
 }
@@ -986,7 +1002,16 @@ export default function App() {
   // Un cálculo por escenario, para las pestañas de comparación y las exportaciones (Excel/Word).
   const scenarioCalcs = useMemo(() => est.scenarios.map((s) => ({ scenario: s, calc: compute(est, s) })), [est]);
 
-  useEffect(() => { refreshHistory(); }, []);
+  useEffect(() => {
+    // El borrador inicial (useState(() => defaultEstimation())) se crea de forma síncrona, antes de
+    // que el historial real termine de cargar desde Supabase (es async) — por eso siempre arrancaba
+    // en "REQ-000001", chocando con cualquier otra sesión que hiciera lo mismo y pisando ese registro
+    // al guardar. En cuanto se conoce el historial real, si el borrador sigue intacto (nunca se
+    // guardó), se le reasigna un correlativo que no choque con lo ya guardado.
+    refreshHistory().then((items) => {
+      setEst((e) => (e.savedAt === null ? { ...e, code: newReqCode(items.map((h) => h.code)) } : e));
+    });
+  }, []);
   const flash = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
 
   async function refreshHistory() {
@@ -998,6 +1023,7 @@ export default function App() {
     }
     items.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
     setHistory(items);
+    return items;
   }
 
   const up = (patch) => setEst((e) => ({ ...e, ...patch }));
@@ -1214,14 +1240,14 @@ export default function App() {
     setAiLoading(true); setAiError("");
     const c = COUNTRIES[est.country];
     const hist = history.slice(0, 10).map((h) => `- ${h.project || "(sin título)"} [${h.client}, ${COUNTRIES[h.country]?.name || h.country}] ${h.insight?.ia ? "· IA: " + h.insight.ia.slice(0, 80) : ""}`).join("\n") || "- (sin historial aún)";
-    const sys = `Eres la parte operativo-comercial senior de tecnología de GRUPO EBIM: actúas como ESTRATEGA COMERCIAL que arma propuestas ganadoras, rentables y a la medida del mercado. EBIM opera en PERÚ y ECUADOR (todo en USD); enfócate en esos dos mercados. Conoces el negocio:
+    const sys = `Eres la parte operativo-comercial senior de tecnología de GRUPO EBIM: actúas como ESTRATEGA COMERCIAL que arma propuestas ganadoras, rentables y a la medida del mercado. EBIM opera en PERÚ, ECUADOR y BOLIVIA (siempre cotiza en USD); enfócate en esos tres mercados. Conoces el negocio:
 ${EBIM_PROFILE}
 ${MARKET_INTEL}
 Aprendes del historial de propuestas de EBIM (reutiliza patrones, perfiles, precios y valor agregado que funcionaron):
 ${hist}
 
 En CADA estimación SIEMPRE debes:
-1) Investigar al CLIENTE ESPECÍFICO con web_search (a qué se dedica, tamaño, contexto). El análisis de competencia general de Perú/Ecuador ya está resuelto en INTELIGENCIA DE MERCADO arriba — no lo vuelvas a investigar, solo aplícalo y adapta la mención de diferenciación al segmento real del cliente (SAP, Odoo, IA, o combinación).
+1) Investigar al CLIENTE ESPECÍFICO con web_search (a qué se dedica, tamaño, contexto). El análisis de competencia general de Perú/Ecuador/Bolivia ya está resuelto en INTELIGENCIA DE MERCADO arriba — no lo vuelvas a investigar, solo aplícalo y adapta la mención de diferenciación al segmento real del cliente (SAP, Odoo, IA, o combinación).
 2) Recomendar valor agregado concreto que EBIM puede sumar (entregables o servicios extra que justifican el precio y abren cross-sell).
 3) Identificar dónde vender IA/automatización si aplica (copilotos, chatbots, automatización de procesos, analítica/BI, agentes); si no aplica, dilo.
 4) Dar una ESTRATEGIA DE CIERRE: cómo defender y posicionar el precio que resulte de TUS PROPIAS horas/entregables (nunca inventes ni menciones un monto distinto — no conoces el precio final exacto en USD porque lo calcula la app a partir de las horas que tú propongas; habla en términos relativos: "sostener el precio sin descuento salvo...", "enfatizar X para justificar el valor", no en cifras absolutas), qué enfatizar ante este cliente, y riesgos a cuidar.
@@ -1230,8 +1256,8 @@ En CADA estimación SIEMPRE debes:
 El usuario de EBIM puede incluir INSTRUCCIONES o consideraciones (p. ej. "agrega un consultor de seguridad", "hazlo más competitivo", "incluye fase 2"): aplícalas. Si recibes una PROPUESTA ACTUAL en JSON (con uno o más escenarios), modifica ESA base y conserva lo no afectado, en lugar de empezar de cero — si el usuario no pide agregar/quitar escenarios, conserva la misma cantidad y nombres que ya existían.
 
 Tarea: a partir del CONTEXTO y de los DOCUMENTOS ADJUNTOS (BBP/Business Blueprint, transcripciones de Teams, actas, propuestas, diagramas): (a) DETECTA automáticamente el tipo de servicio/proyecto, el CLIENTE y el PAÍS del cliente; (b) propón el equipo y el desglose de entregables con horas por perfil para ese país, para cada escenario que corresponda. Si hay un BBP, deriva los entregables de los procesos y gaps; si hay transcripciones, extrae alcance, supuestos y compromisos. Usa web_search para validar cliente, competencia o tarifas locales. Devuelve EXCLUSIVAMENTE un objeto JSON válido (sin texto ni markdown) con esta forma exacta y conciso:
-{"cliente":"string (nombre del cliente detectado, o '')","pais":"string (PE o EC; o el nombre del país)","tipoProyecto":"string","resumenRequerimiento":"string (RESUMEN EN LENGUAJE SIMPLE de qué necesita el cliente y por qué — no quién es el cliente ni de qué se dedica, sino CUÁL ES EL PROBLEMA/NECESIDAD que trae y qué se le va a entregar en términos llanos, como si se lo explicaras a alguien que no leyó los documentos; 3-4 frases, sin jerga de venta)","hechosClave":["string (cifras/datos LITERALES tomados de los documentos que usaste para dimensionar el alcance — ej. 'Catálogo de 15,000 SKUs iniciales', '5 usuarios en panel admin' — copia el número exacto del documento, nunca lo redondees ni lo inventes; 3-6 items)"],"perfilCliente":"string (investiga al cliente con web_search: a qué se dedica, industria, tamaño y qué ofrecerle; 2-3 frases)","escenarios":[{"nombre":"string (corto y diferenciado, ej. 'Presencial', 'Remoto — 1 semana'; si el usuario NO pidió comparar alternativas, usa el nombre del proyecto o 'Propuesta única')","equipo":[{"perfil":"string","tier":"senior|semi|analista","rol":"string"}],"entregables":[{"nombre":"string","horas":[number,"..."],"semanas":number}],"cronograma":[{"hito":"string","pct":number}],"razonPrecio":"string (2-3 frases: qué impulsa el precio de ESTE escenario — horas/entregables clave, supuestos de modalidad, riesgos; sin inventar montos en USD)"}],"analisisCompetencia":"string (2-3 frases)","valorAgregado":["string","string"],"oportunidadIA":"string (1-2 frases; o 'No aplica')","estrategiaCierre":"string (cómo defender el precio resultante en términos relativos, sin inventar un monto en USD; qué enfatizar y riesgos; 2-3 frases)"}
-Reglas: "horas" es un array de números EN EL MISMO ORDEN Y LARGO que el array "equipo" de ese escenario — horas[i] son las horas que le tocan a equipo[i] en ese entregable (ej. si equipo=[Arquitecto,PM,Analista], horas=[8,4,2] significa 8h Arquitecto + 4h PM + 2h Analista). Nunca agrupes por tier: cada integrante del equipo tiene su propia posición en "horas" aunque comparta tier con otro. semanas=duración del entregable en semanas (entero ≥1). El país solo puede ser Perú (PE) o Ecuador (EC). Máximo 6 entregables por escenario, numéralos. El cronograma de cada escenario suma pct=1.0 (típico 0.35/0.35/0.30). "escenarios" tiene 1 elemento por defecto; solo tiene más de uno si el usuario pidió explícitamente comparar alternativas (máx. 3). Sé breve para no exceder el límite de tokens. Si el mensaje incluye una PROPUESTA ACTUAL, trata el texto del usuario como INSTRUCCIONES DE MODIFICACIÓN: aplícalas sobre esa propuesta y conserva todo lo que el usuario no pida cambiar (devuelve igualmente el JSON completo).
+{"cliente":"string (nombre del cliente detectado, o '')","pais":"string (PE, EC o BO; o el nombre del país)","tipoProyecto":"string","resumenRequerimiento":"string (RESUMEN EN LENGUAJE SIMPLE de qué necesita el cliente y por qué — no quién es el cliente ni de qué se dedica, sino CUÁL ES EL PROBLEMA/NECESIDAD que trae y qué se le va a entregar en términos llanos, como si se lo explicaras a alguien que no leyó los documentos; 3-4 frases, sin jerga de venta)","hechosClave":["string (cifras/datos LITERALES tomados de los documentos que usaste para dimensionar el alcance — ej. 'Catálogo de 15,000 SKUs iniciales', '5 usuarios en panel admin' — copia el número exacto del documento, nunca lo redondees ni lo inventes; 3-6 items)"],"perfilCliente":"string (investiga al cliente con web_search: a qué se dedica, industria, tamaño y qué ofrecerle; 2-3 frases)","escenarios":[{"nombre":"string (corto y diferenciado, ej. 'Presencial', 'Remoto — 1 semana'; si el usuario NO pidió comparar alternativas, usa el nombre del proyecto o 'Propuesta única')","equipo":[{"perfil":"string","tier":"senior|semi|analista","rol":"string"}],"entregables":[{"nombre":"string","horas":[number,"..."],"semanas":number}],"cronograma":[{"hito":"string","pct":number}],"razonPrecio":"string (2-3 frases: qué impulsa el precio de ESTE escenario — horas/entregables clave, supuestos de modalidad, riesgos; sin inventar montos en USD)"}],"analisisCompetencia":"string (2-3 frases)","valorAgregado":["string","string"],"oportunidadIA":"string (1-2 frases; o 'No aplica')","estrategiaCierre":"string (cómo defender el precio resultante en términos relativos, sin inventar un monto en USD; qué enfatizar y riesgos; 2-3 frases)"}
+Reglas: "horas" es un array de números EN EL MISMO ORDEN Y LARGO que el array "equipo" de ese escenario — horas[i] son las horas que le tocan a equipo[i] en ese entregable (ej. si equipo=[Arquitecto,PM,Analista], horas=[8,4,2] significa 8h Arquitecto + 4h PM + 2h Analista). Nunca agrupes por tier: cada integrante del equipo tiene su propia posición en "horas" aunque comparta tier con otro. semanas=duración del entregable en semanas (entero ≥1). El país solo puede ser Perú (PE), Ecuador (EC) o Bolivia (BO). Máximo 6 entregables por escenario, numéralos. El cronograma de cada escenario suma pct=1.0 (típico 0.35/0.35/0.30). "escenarios" tiene 1 elemento por defecto; solo tiene más de uno si el usuario pidió explícitamente comparar alternativas (máx. 3). Sé breve para no exceder el límite de tokens. Si el mensaje incluye una PROPUESTA ACTUAL, trata el texto del usuario como INSTRUCCIONES DE MODIFICACIÓN: aplícalas sobre esa propuesta y conserva todo lo que el usuario no pida cambiar (devuelve igualmente el JSON completo).
 CONSISTENCIA (importante): para el mismo alcance/contexto, dos corridas NO deberían producir precios finales muy distintos entre sí — eso rompe la confianza del comercial en la herramienta. Antes de fijar las horas, estima primero la complejidad y el tamaño real del alcance (número de procesos/módulos/integraciones descritos, cantidad de usuarios, plazos mencionados) y deriva las horas de ahí de forma metódica, no de una sensación distinta cada vez. Usa como referencia órdenes de magnitud típicos de EBIM para consultoría TI LatAm (un diagnóstico acotado ronda 80-150h totales; una implementación mediana con desarrollo, 400-900h; un programa multi-módulo, 1000h+) y ajusta según lo que el contexto realmente pida, no por defecto.
 ALCANCE (cuando los documentos son transcripciones/actas, no un BBP cerrado): incluye en las horas SOLO lo que quedó como compromiso o requerimiento explícito en la conversación; si algo se menciona como idea, posibilidad futura o "fase 2/nice to have", NO lo sumes al alcance de esta cotización — mencionarlo como oportunidad de venta futura en valorAgregado si aplica, pero no lo cotices. Esto es clave para que el alcance (y por lo tanto el precio) no varíe según cuánto de la charla decidas incluir cada vez.
 CALIBRACIÓN DE HORAS POR TIPO DE TRABAJO (crítico — sesgo conocido a corregir): las estimaciones de LLM sistemáticamente SUBESTIMAN el trabajo "de riesgo" (integraciones, migraciones, trabajo sobre sistemas legados/de terceros) frente al trabajo "de construcción limpia" (features nuevas desde cero) — y subestiman las pruebas. Corrige eso así:
@@ -2154,7 +2180,7 @@ CONTEXTO E INSTRUCCIONES DEL USUARIO (EBIM):\n${est.context || "(ver documentos 
               </div>
             )}
           </div>
-          <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador), sugiere valor agregado y propone IA.</div>
+          <div className="hint">La IA completa esto al generar el borrador; siempre investiga al cliente, analiza la competencia (Perú/Ecuador/Bolivia), sugiere valor agregado y propone IA.</div>
         </ModalCard>
       )}
 
