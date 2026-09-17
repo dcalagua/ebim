@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ebim
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # Clave secreta que la API de NIT exige en el header X-API-Key. sync:false
+      # hace que Render la pida en el panel y no la guarde en el repo. Sin ella
+      # la API se niega a arrancar.
+      - key: API_KEY
+        sync: false
+      # Variables públicas de Supabase que el build del frontend (Vite) hornea
+      # en el bundle. Render las expone como build args del Dockerfile.
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
